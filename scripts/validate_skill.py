@@ -95,8 +95,8 @@ REQUIRED["skills/engineering-judgment/references/training-drills.md"] += ["Quest
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["Question n/N"]
 REQUIRED["README.md"] += ["## Updating the skill", "npx skills check", "npx skills update engineering-judgment"]
 # The default analyst is requirements-analyst, linked for download.
-REQUIRED[".engineering-workflow.json"] = ['"analyst": { "name": "requirements-analyst" }']
-REQUIRED["README.md"] += ["https://github.com/dimitriskl/requirements-analyst", '"analyst": { "name": "requirements-analyst" }']
+REQUIRED[".engineering-workflow.json"] = ['"name": "requirements-analyst"']
+REQUIRED["README.md"] += ["https://github.com/dimitriskl/requirements-analyst", '"name": "requirements-analyst"']
 # Chat text names its speaker, with one color marker per role.
 ROLE_COLORS = ["🟣 analyst", "🔵 backend", "🟢 frontend", "🟠 reviewer", "🟡 qa", "⚪ orchestrator"]
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ROLE_COLORS + ["<role> (<agent name>):"]
@@ -119,10 +119,27 @@ REQUIRED["README.md"] += ["Interacted with `/root/backend_s001`", "subagent `bac
 # Every Guide me step card lists the tests written for that step, and `tests` shows their code.
 REQUIRED["skills/engineering-judgment/references/guide-me.md"] += ["Tests:", "new | changed | existing", "`tests`", "none written"]
 REQUIRED["README.md"] += ["VerifyCode_WrongCode_Returns401", "**`tests`**"]
+# Per-role model and effort, one value per host; the orchestrator detects the host.
+REQUIRED["skills/engineering-judgment/SKILL.md"] += [
+    "model.claude", "effort.codex", "host: Claude Code | Codex", "CLAUDECODE",
+    "`reviewer: opus high`", "asks once", "<model> · <effort>",
+]
+REQUIRED["README.md"] += ['"claude": "opus"', '"codex": "gpt-6.1-sol"', '"codex": "gpt-6.1-terra"', "`reviewer: opus high`"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] + ["Not signed yet"]
+import json
+try:
+    cfg = json.loads((root / ".engineering-workflow.json").read_text(encoding="utf-8"))
+    for role in ("analyst", "backend", "frontend", "qa", "reviewer"):
+        a = cfg["agents"][role]
+        for key in ("model", "effort"):
+            for host in ("claude", "codex"):
+                if not isinstance(a.get(key, {}).get(host), str) or not a[key][host]:
+                    errors.append(f".engineering-workflow.json: agents.{role}.{key}.{host} missing")
+except (ValueError, KeyError) as exc:
+    errors.append(f".engineering-workflow.json invalid: {exc}")
 for rel, phrases in REQUIRED.items():
     path = root / rel
     if not path.is_file():

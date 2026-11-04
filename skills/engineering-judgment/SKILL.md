@@ -30,13 +30,18 @@ This workflow is **human-on-the-loop**: the orchestrator drives the work, and th
 Before announcing a route:
 
 1. Read `.engineering-workflow.json` from the project repository root (the workspace root, not the skill's own folder) if present. It maps roles to agent names: `agents.analyst|backend|frontend|qa|reviewer.name`. Resolve each name to an **actual agent definition** and a supported way to invoke it (`.claude/agents/`, `.codex/agents/`, `.github/agents/`, the host's subagent registry). A file in the repo does not prove the current host can call it, so verify.
+   - **Host.** Work out where you run: Claude Code if you have its agent tool or the `CLAUDECODE` environment variable is set; Codex if you have its spawn-agent tool. Report it as `host: Claude Code | Codex`.
+   - **Model and effort per role.** Each role may set `model` and `effort`, each with a `claude` and a `codex` value (`model.claude`, `model.codex`, `effort.claude`, `effort.codex`). Use only the current host's values and pass them on every agent start (Claude Code: the agent tool's model alias and effort; Codex: the spawn's model and reasoning effort). A missing value means the session's own model or effort.
+   - **Per-run override.** A line at the start of the developer's prompt such as `reviewer: opus high` overrides the JSON for that run only.
+   - **Empty or rejected model.** If the current host's `model` is empty for any role, the orchestrator asks once, before the first agent starts: which model for the strong roles (analyst, reviewer) and which for the others (backend, frontend, qa), from the host's `/model` list. Write the answer into `.engineering-workflow.json`, show the change, and never ask again for that project. If a model or effort is rejected, run on the session's model and say so in the status line; never pretend.
+   - **Overrides you can't beat.** In Claude Code, `CLAUDE_CODE_EFFORT_LEVEL` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` win over these values; in Codex, a `model` line in an agent's own `.toml` wins. If any is set, warn once in the routing report.
 2. Read the nearest project instructions, `git status`, `CONTEXT.md`/domain docs, and the `prd/` folder. Find the relevant code paths by name only (to pass them to agents); reading the code itself is the agents' job. **Rebuild the board** from the slice files and `git worktree list` (see `references/kanban-protocol.md`, "Resume"). Keep unrelated uncommitted work safe.
-3. State a **one-line routing report**: `Mode | risk | board state | agents found/missing | planned gates`. For missing agents, never pretend to dispatch: use the fallback and label it, or ask for a mapping when it's indispensable.
+3. State a **one-line routing report**: `Mode | host | risk | board state | agents found/missing (with model · effort) | planned gates`. For missing agents, never pretend to dispatch: use the fallback and label it, or ask for a mapping when it's indispensable.
 4. **Resume** existing PRDs and slices. Never recreate planning artifacts just to satisfy the flow.
 
 **Live agent status.** Print one line immediately before every agent run and one when it returns, so the developer always sees who is working:
 
-- `<color> ▶ Now working: <role> (<agent name>) · <phase or slice> · subagent `<run name>` started | FALLBACK, not independent`
+- `<color> ▶ Now working: <role> (<agent name>) · <model> · <effort> · <phase or slice> · subagent `<run name>` started | FALLBACK, not independent`
 - `<color> ✓ Done: <role> (<agent name>) · <one-line result with evidence>` or `<color> ✗ Failed: <role> (<agent name>) · <reason>`
 
 Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` for your own integration and verification work. Write `subagent … started` only if a separate agent was actually invoked. Name every run `<role>_<slice or phase>` (for example `backend_s001`, `analyst_prd`) when the host lets you name it, so the host's own lines (Codex: `Interacted with /root/backend_s001`) match your `▶` line and the developer knows a subagent is working. In parallel runs, print one `▶` line per agent. Never print a `✓` line for work that did not run.

@@ -1,9 +1,29 @@
 {
   "agents": {
-    "analyst": { "name": "requirements-analyst" },
-    "backend": { "name": "csharp-expert-developer" },
-    "frontend": { "name": "angular-typescript-developer" },
-    "qa": { "name": "qa-automation-engineer" },
-    "reviewer": { "name": "senior-code-reviewer" }
+    "analyst": {
+      "name": "requirements-analyst",
+      "model": { "claude": "opus", "codex": "gpt-6.1-sol" },
+      "effort": { "claude": "high", "codex": "high" }
+    },
+    "backend": {
+      "name": "csharp-expert-developer",
+      "model": { "claude": "sonnet", "codex": "gpt-6.1-terra" },
+      "effort": { "claude": "medium", "codex": "medium" }
+    },
+    "frontend": {
+      "name": "angular-typescript-developer",
+      "model": { "claude": "sonnet", "codex": "gpt-6.1-terra" },
+      "effort": { "claude": "medium", "codex": "medium" }
+    },
+    "qa": {
+      "name": "qa-automation-engineer",
+      "model": { "claude": "sonnet", "codex": "gpt-6.1-terra" },
+      "effort": { "claude": "low", "codex": "low" }
+    },
+    "reviewer": {
+      "name": "senior-code-reviewer",
+      "model": { "claude": "opus", "codex": "gpt-6.1-sol" },
+      "effort": { "claude": "high", "codex": "high" }
+    }
   }
 }

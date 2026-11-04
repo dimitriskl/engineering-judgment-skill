@@ -177,11 +177,11 @@ The skill prints a line each time an agent starts or finishes, and says whether 
 | ⚪ orchestrator | the main session: routing, integration, your sign-off |
 
 ```text
-🟣 ▶ Now working: analyst (requirements-analyst) · PRD invoice-approval · subagent `analyst_prd` started
+🟣 ▶ Now working: analyst (requirements-analyst) · opus · high · PRD invoice-approval · subagent `analyst_prd` started
 🟣 ✓ Done: analyst (requirements-analyst) · 5 stories, 2 open questions
 🟣 analyst (requirements-analyst): The plan adds one shared protection key, so all API instances can read the stored secrets.
 🟣 analyst (requirements-analyst) · Question 1/2: Should the key survive a restart? Recommended: yes, stored outside the app folder.
-🔵 ▶ Now working: backend (csharp-expert-developer) · slice 001 · subagent `backend_s001` started
+🔵 ▶ Now working: backend (csharp-expert-developer) · sonnet · medium · slice 001 · subagent `backend_s001` started
 🔵 ✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
 🟠 ▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
 ⚪ orchestrator: Slice 001 is in review; nothing needs your input yet.
@@ -256,16 +256,51 @@ Each repository's README shows how to install the agent for one project (`.claud
 ```json
 {
   "agents": {
-    "analyst": { "name": "requirements-analyst" },
-    "backend": { "name": "csharp-expert-developer" },
-    "frontend": { "name": "angular-typescript-developer" },
-    "qa": { "name": "qa-automation-engineer" },
-    "reviewer": { "name": "senior-code-reviewer" }
+    "analyst": {
+      "name": "requirements-analyst",
+      "model": { "claude": "opus", "codex": "gpt-6.1-sol" },
+      "effort": { "claude": "high", "codex": "high" }
+    },
+    "backend": {
+      "name": "csharp-expert-developer",
+      "model": { "claude": "sonnet", "codex": "gpt-6.1-terra" },
+      "effort": { "claude": "medium", "codex": "medium" }
+    },
+    "frontend": {
+      "name": "angular-typescript-developer",
+      "model": { "claude": "sonnet", "codex": "gpt-6.1-terra" },
+      "effort": { "claude": "medium", "codex": "medium" }
+    },
+    "qa": {
+      "name": "qa-automation-engineer",
+      "model": { "claude": "sonnet", "codex": "gpt-6.1-terra" },
+      "effort": { "claude": "low", "codex": "low" }
+    },
+    "reviewer": {
+      "name": "senior-code-reviewer",
+      "model": { "claude": "opus", "codex": "gpt-6.1-sol" },
+      "effort": { "claude": "high", "codex": "high" }
+    }
   }
 }
 ```
 
-**Using other agents?** Replace each `name` with your own agent's name. Only `agents.<role>.name` is read; the roles are `analyst`, `backend`, `frontend`, `qa` and `reviewer`. Leave a role out if you have no agent for it.
+**Model and effort per role.** Each role can set `model` and `effort`, with one value for Claude Code (`claude`) and one for Codex (`codex`). The orchestrator detects which tool it runs in and uses only that tool's values. The defaults spend the strong model where mistakes cost most and save your limits elsewhere:
+
+| Role | Claude Code | Codex | Why |
+| --- | --- | --- | --- |
+| `analyst` | opus · high | gpt-6.1-sol · high | Wrong requirements make every later step wrong |
+| `reviewer` | opus · high | gpt-6.1-sol · high | The last independent check before QA and your sign-off |
+| `backend`, `frontend` | sonnet · medium | gpt-6.1-terra · medium | Builds from a complete contract, owned files and test commands |
+| `qa` | sonnet · low | gpt-6.1-terra · low | Runs the listed checks against written acceptance criteria |
+
+- **Change one run** without editing the file: start your prompt with a line such as `reviewer: opus high`.
+- **Leave a value out** (or empty) and that agent uses your session's model or effort. If the Codex or Claude `model` is empty, the orchestrator asks you once which models to use (pick them from `/model`), writes them into the file and shows you the change.
+- **Model names change.** If a name is rejected, the agent runs on your session's model and the status line says so. Check `/model` in your tool for the current names.
+- **Settings that win over the file:** in Claude Code, the `CLAUDE_CODE_EFFORT_LEVEL` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` environment variables; in Codex, a `model` line inside an agent's own `.toml` file (the agents above have none). The orchestrator warns you if one is set.
+- The orchestrator itself is your main session, so its model is the one you choose when you start (`/model`). It only reads the board, so a mid-level model is usually enough.
+
+**Using other agents?** Replace each `name` with your own agent's name. The roles are `analyst`, `backend`, `frontend`, `qa` and `reviewer`; for each, only `name`, `model` and `effort` are read. Leave a role out if you have no agent for it.
 
 The reviewer and QA write their verdicts into the slice file themselves, so they need permission to edit files (in Codex, a `workspace-write` sandbox). The orchestrator checks that they changed nothing else. If a reviewer can't edit files, the orchestrator records its verdict word for word, labelled with the agent's name.
 
