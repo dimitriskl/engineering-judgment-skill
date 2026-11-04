@@ -3,3 +3,5 @@
 # Common editor/tool artifacts
 .DS_Store
 Thumbs.db
+# Local AI-assistant working files (design specs, plans)
+docs/superpowers/
