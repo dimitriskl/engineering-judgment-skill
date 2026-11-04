@@ -19,7 +19,7 @@ From your project directory, with Node.js and a supported coding-agent client in
 npx skills add dimitriskl/engineering-judgment-skill --skill engineering-judgment
 ```
 
-Choose your coding agent when prompted. Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in Guide me before you sign off.
+Choose your coding agent when prompted. Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
 
 **Once: set auto-compact to 40%.** Models get less reliable once their context is more than about 40% full. Every agent that is still working on its job compacts automatically at 40% and carries on; the next job always starts in a fresh agent. This is a host setting:
 
@@ -38,7 +38,7 @@ model_auto_compact_token_limit = 160000
 ```text
 Use engineering-judgment in Full feature mode.
 Add two-factor authentication (2FA) to login: after the password, the user enters a 6-digit code from an authenticator app.
-Ask me only what is unclear, then finish with Guide me so I can walk through the changes and sign off.
+Ask me only what is unclear, then finish with the Walkthrough so I can walk through the changes and sign off.
 ```
 
 **2. Answer the questions**, one at a time (`🟣 analyst [opus, high] (requirements-analyst) · Question 1/4: …`). Reply with your answer, or accept the recommended one:
@@ -53,7 +53,7 @@ yes, use the recommended answer
 yes, run 002 and 003 in parallel
 ```
 
-**4. Walk through the changes in Guide me**, one step at a time (see [what happens in this step](#what-happens-in-the-guide-me-step) below):
+**4. Walk through the changes in the Walkthrough**, one step at a time (see [what happens in this step](#what-happens-in-the-walkthrough-step) below):
 
 ```text
 next
@@ -70,12 +70,12 @@ approve all
 ACCEPT
 ```
 
-### What happens in the Guide me step
+### What happens in the Walkthrough step
 
 When every slice is `Completed`, the orchestrator stops building and shows you what was built, **in the order the code runs** (like stepping through it with a debugger), not file by file. Nothing changes in your code during the walk; it only reads the diff since the feature branch started.
 
 ```
-━━ Guide me · login-2fa · 7 steps ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━ Walkthrough · login-2fa · 7 steps ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    1. ✓ POST /auth/login: password ok → "2FA required"   (slice 002)
  ▶ 2.   Verify the 6-digit code                          (slice 002)
    3.   Lock after 5 wrong codes                         (slice 002)
@@ -100,11 +100,11 @@ Step 2/7 · src/Auth/TwoFactorService.cs:40-58
 
 - **Each card** shows where the code is (`file:line`), **what** it does, **why** (the slice and acceptance criterion) and the **tests** written for that step: file and line, test name, what it checks in plain words, its result (PASS / FAIL / NOT RUN) and whether it is new, changed or existing. A step with no test shows `none written — not verified`.
 - **`next` / `back` / `go N`** move through the list; viewed steps get `✓`. **`tests`** shows the code of those tests (arrange, act, assert). **`ask …`** answers from the code and evidence and stays on the step.
-- **`change …`** is saved in that slice file as an `open` change request and the step gets `✎`. You keep walking. At the end, those slices go back to the developer, then review and QA again, and the next Guide me shows **only the changed steps**.
+- **`change …`** is saved in that slice file as an `open` change request and the step gets `✎`. You keep walking. At the end, those slices go back to the developer, then review and QA again, and the next Walkthrough shows **only the changed steps**.
 - **`approve all`** skips the rest; the sign-off honestly records which steps you didn't view.
 - **At the end** you see a one-screen summary: steps viewed, change requests, and **blind spots** (what the tests did not prove). Then you choose **ACCEPT** or **REJECT**. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is written into the PRD's `Developer sign-off` with your git name, the date and the commit, then the orchestrator offers the merge; you do it.
 
-If you stop halfway, open a new session and continue from the files: `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use engineering-judgment in Guide me mode on prd/login-2fa.`
+If you stop halfway, open a new session and continue from the files: `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use engineering-judgment in Walkthrough mode on prd/login-2fa.`
 
 **What each agent does in this example:**
 
@@ -127,7 +127,7 @@ The CLI and agent availability vary by environment. **Installation does not guar
 | Tests pass but behavior is broken | Separates what was *tested* from what was *not tested* |
 | Reviewer only reads a summary | Asks the reviewer to inspect the original diff, requirements, and output |
 | Deadlines encourage rubber-stamping | Cuts ceremony and scope before critical verification |
-| You ship code you never looked at | **Guide me** walks you through the changes step by step before your Developer sign-off |
+| You ship code you never looked at | The **Walkthrough** takes you through the changes step by step before your Developer sign-off |
 
 **It does not require C#, Angular, subagents, or other vendors' skills.** Those are integrations, not dependencies. It works in **Claude Code and Codex CLI**.
 
@@ -145,7 +145,7 @@ flowchart TD
   R -->|PASS| Q[QA: checks every acceptance criterion]
   Q -->|FAIL| E
   Q -->|PASS| M[Merge slice + integration check]
-  M --> G[Guide me: step-by-step walkthrough]
+  M --> G[Walkthrough: step by step]
   G --> S[Developer sign-off: ACCEPT / REJECT]
   S --> H[You merge to main and release]
 ```
@@ -160,7 +160,7 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 | **Full feature** | Ambiguous or cross-cutting work | `Use engineering-judgment in Full feature mode to design and implement invoice approval.` |
 | **Fix + Deadline** | Production issue, limited time | `Use engineering-judgment in Fix + Deadline mode. I have 30 minutes; fix this retry bug.` |
 | **Audit** | Existing PR/diff | `Use engineering-judgment in Audit mode on my branch. What do passing tests miss?` |
-| **Guide me** | See what was built, step by step, and sign off | `Use engineering-judgment in Guide me mode on this branch.` |
+| **Walkthrough** (formerly Guide me) | See what was built, step by step, and sign off | `Use engineering-judgment in Walkthrough mode on this branch.` |
 | **Drill** | Improve your own engineering judgment (the only mode with quiz questions) | `Use engineering-judgment in Drill mode. Ask one question at a time about a real design decision.` |
 
 ### Who is working right now
@@ -231,7 +231,7 @@ Each slice moves through a kanban, and every step runs in a **fresh agent** that
 - **Your own work is safe.** If you have uncommitted changes, the orchestrator asks you to stash, commit or stop before any agent runs. Before every agent run it records a snapshot (HEAD + `git status`); afterwards it checks that the agent only touched what its role allows, reverts anything else from that run only, and allows one corrective re-run before asking you.
 - **Resume any time.** A new session rebuilds the board from the files and `git worktree list`; nothing depends on chat history.
 
-At the end, **Guide me** shows a numbered list of the major changes in the order the code runs, one step at a time (`file:line`, what, why, proof). Type `next`, `back`, `go N`, `ask …`, `change …` (saved as an `open` change request and sent back to the developer) or `approve all`. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is recorded as the **Developer sign-off** in the PRD: ACCEPT or REJECT, with your git name, date and commit. See the [example PRD folder](examples/prd/invoice-approval/).
+At the end, the **Walkthrough** shows a numbered list of the major changes in the order the code runs, one step at a time (`file:line`, what, why, proof). Type `next`, `back`, `go N`, `ask …`, `change …` (saved as an `open` change request and sent back to the developer) or `approve all`. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is recorded as the **Developer sign-off** in the PRD: ACCEPT or REJECT, with your git name, date and commit. See the [example PRD folder](examples/prd/invoice-approval/).
 
 You own: answers to open questions, escalations, consent to worktrees, the sign-off, and merge/push/release.
 

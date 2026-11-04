@@ -110,4 +110,4 @@ Criteria with no automated test: none
 - 2026-11-04 | reviewer (senior-code-reviewer) | review round 2 | PASS
 - 2026-11-04 | qa (qa-automation-engineer) | QA round 1 | PASS — 4/4 criteria
 - 2026-11-04 | orchestrator | merged into feature/invoice-approval, integration check | PASS
-- 2026-11-04 | orchestrator | Guide me + L2 sign-off | ACCEPT
+- 2026-11-04 | orchestrator | Walkthrough + L2 sign-off | ACCEPT

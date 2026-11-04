@@ -60,22 +60,22 @@ REQUIRED = {
         "vertical slice", "## Contract first", "exact files", "## Existing plans",
         "## Data checks", "read-only",
     ],
-    "skills/engineering-judgment/references/guide-me.md": [
+    "skills/engineering-judgment/references/walkthrough.md": [
         "## Step list", "execution-flow order", "## Step card", "What:", "Why:", "Tests:",
         "## Commands", "next", "back", "go N", "ask", "change", "approve all",
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
     "skills/engineering-judgment/SKILL.md": [
-        'version: "3.0.0"', "human-on-the-loop", "`Guide me`", "references/kanban-protocol.md",
-        "references/analyst-playbook.md", "references/guide-me.md", "templates/prd.md",
+        'version: "3.0.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
+        "references/analyst-playbook.md", "references/walkthrough.md", "templates/prd.md",
         "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
     ],
     "skills/engineering-judgment/references/handoff-contract.md": [
         "slice file", "git diff --name-only", "recorded by orchestrator",
     ],
-    "skills/engineering-judgment/references/orchestration-matrix.md": ["Guide me", "prd/"],
+    "skills/engineering-judgment/references/orchestration-matrix.md": ["Walkthrough", "prd/"],
     "skills/engineering-judgment/references/training-drills.md": ["teach-back"],
-    "README.md": ["Guide me", "prd/", "human-on-the-loop", "Developer sign-off"],
+    "README.md": ["Walkthrough", "prd/", "human-on-the-loop", "Developer sign-off"],
     "CHANGELOG.md": ["## 3.0.0"],
 }
 # Final-review fixes: snapshots, evidence, blocked state, change-request state, base branch.
@@ -85,7 +85,7 @@ REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
     "Blocked from:", "git status --porcelain", "never revert a path that was already",
     "one corrective re-run", "stash", "parts run one after another", "Evidence:",
 ]
-REQUIRED["skills/engineering-judgment/references/guide-me.md"] += ["· open", "· done", "Base:"]
+REQUIRED["skills/engineering-judgment/references/walkthrough.md"] += ["· open", "· done", "Base:"]
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["before dispatching the analyst", "Evidence:"]
 REQUIRED["skills/engineering-judgment/references/handoff-contract.md"] += ["git status --porcelain"]
 # Questions to the developer show their position and the total, e.g. "Question 4/10".
@@ -110,14 +110,14 @@ REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
     "model_auto_compact_token_limit", "new job",
 ]
 REQUIRED["README.md"] += [
-    "### What happens in the Guide me step", "Step 2/7", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
+    "### What happens in the Walkthrough step", "Step 2/7", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
     "model_auto_compact_token_limit",
 ]
 # The user sees in plain words that a subagent started, under a readable run name.
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["subagent `<run name>` started", "<role>_<slice or phase>"]
 REQUIRED["README.md"] += ["Interacted with `/root/backend_s001`", "subagent `backend_s001` started"]
-# Every Guide me step card lists the tests written for that step, and `tests` shows their code.
-REQUIRED["skills/engineering-judgment/references/guide-me.md"] += ["Tests:", "new | changed | existing", "`tests`", "none written"]
+# Every Walkthrough step card lists the tests written for that step, and `tests` shows their code.
+REQUIRED["skills/engineering-judgment/references/walkthrough.md"] += ["Tests:", "new | changed | existing", "`tests`", "none written"]
 REQUIRED["README.md"] += ["VerifyCode_WrongCode_Returns401", "**`tests`**"]
 # Per-role model and effort, one value per host; the orchestrator detects the host.
 REQUIRED["skills/engineering-judgment/SKILL.md"] += [
@@ -125,6 +125,15 @@ REQUIRED["skills/engineering-judgment/SKILL.md"] += [
     "`reviewer: opus high`", "asks once", "▶ Now working: <role> [<model>, <effort>]",
 ]
 REQUIRED["README.md"] += ['"claude": "opus"', '"codex": "gpt-6.1-sol"', '"codex": "gpt-6.1-terra"', "`reviewer: opus high`"]
+# The mode was renamed from "Guide me" to "Walkthrough"; the old name may appear only as an alias.
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ["formerly `Guide me`"]
+_old_name = re.compile(r"guide[ -]me", re.I)
+for scope in ("skills", "README.md", "examples"):
+    target = root / scope
+    for f in ([target] if target.is_file() else sorted(target.rglob("*.md"))):
+        for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if _old_name.search(line) and "formerly" not in line:
+                errors.append(f"{f.relative_to(root).as_posix()}:{n} uses the old name Guide me")
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]

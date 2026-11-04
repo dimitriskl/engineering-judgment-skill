@@ -1,11 +1,11 @@
-# Guide me — walkthrough and developer sign-off
+# Walkthrough — step-by-step tour and developer sign-off
 
-Guide me shows the developer **what was built, in the order it runs**, one step at a time, the way a person would step through code with a debugger. It is:
+The Walkthrough shows the developer **what was built, in the order it runs**, one step at a time, the way a person would step through code with a debugger. It is:
 
 - **the sign-off screen** at the end of every PRD, and per slice for L2 slices;
-- **a standalone mode**: `Use engineering-judgment in Guide me mode on <PRD | slice | branch | diff>`.
+- **a standalone mode**: `Use engineering-judgment in Walkthrough mode on <PRD | slice | branch | diff>`.
 
-Guide me never quizzes the developer. Check questions belong only to Drill mode.
+The Walkthrough never quizzes the developer. Check questions belong only to Drill mode.
 
 ## Step list
 
@@ -20,7 +20,7 @@ Show the whole list at the top of every screen. Mark the steps with `▶` for th
 Below the list, show **one** step:
 
 ```
-━━ Guide me · invoice-approval · 9 steps ━━━━━━━━━━━━━━━━━━
+━━ Walkthrough · invoice-approval · 9 steps ━━━━━━━━━━━━━━━━━━
    1. ✓ POST /invoices/{id}/approve endpoint      (slice 003)
    2. ✓ Permission check: only Approvers          (slice 003)
  ▶ 3.   Guard: invoice must still be "Pending"     (slice 003)
@@ -56,7 +56,7 @@ Wait for the developer after every card.
 - `change …` — record in that step's slice file under `Change requests`: `Change request by <git user.name> · <date> · file:line · <what to do differently> · open`. The orchestrator changes `· open` to `· done (<commit sha>)` when that slice reaches `Completed` again. Mark the step `✎` and continue the walk. Do **not** dispatch anything yet.
 - `approve all` — skip the remaining steps and go to the summary. The sign-off records `approved without viewing steps N–M`. This is honest, not a penalty.
 
-When the walk ends, every slice with change requests goes back to its developer parts, following the transition table, then through review and QA again. The next Guide me shows **only the changed steps**.
+When the walk ends, every slice with change requests goes back to its developer parts, following the transition table, then through review and QA again. The next Walkthrough shows **only the changed steps**.
 
 ## Sign-off
 

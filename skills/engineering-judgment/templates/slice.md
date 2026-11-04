@@ -88,14 +88,14 @@ Criteria with no automated test: …
 
 ## Change requests
 
-<!-- Added by the orchestrator from the developer's Guide me session. -->
+<!-- Added by the orchestrator from the developer's Walkthrough session. -->
 
 - Change request by <git user.name> · YYYY-MM-DD · `file:line` · <what to do differently> · open
 <!-- The orchestrator changes `open` to `done (<commit sha>)` when the slice reaches Completed again. -->
 
 ## Developer sign-off
 
-<!-- L2 slices only (auth, money, personal data, migrations, retries/idempotency, concurrency). Filled in by the orchestrator after Guide me on this slice. Delete for L0/L1. -->
+<!-- L2 slices only (auth, money, personal data, migrations, retries/idempotency, concurrency). Filled in by the orchestrator after the Walkthrough on this slice. Delete for L0/L1. -->
 
 - Steps viewed: <list or "approved without viewing steps N–M">
 - Not proved (blind spots): …

@@ -61,7 +61,7 @@ Branch: feature/<prd-name> · Base: <branch>@<sha>
 
 ## Developer sign-off
 
-<!-- Filled in by the orchestrator only when every slice is Completed, from the developer's Guide me session and decision. Never filled in by an agent on its own. A later sign-off is appended as a new block; the latest block is the decision. Until then write: Not signed yet. -->
+<!-- Filled in by the orchestrator only when every slice is Completed, from the developer's Walkthrough session and decision. Never filled in by an agent on its own. A later sign-off is appended as a new block; the latest block is the decision. Until then write: Not signed yet. -->
 
 - Shipped: <n>/<n> slices Completed (links)
 - Steps viewed: <list or "approved without viewing steps N–M">

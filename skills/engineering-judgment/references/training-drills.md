@@ -1,6 +1,6 @@
 # Optional critical-thinking drills using real code
 
-These are **opt-in and used only in Drill mode** — teach-back and check questions never appear in other modes, handoffs or the Guide me sign-off. Use actual changed source and evidence, never a generic trivia quiz.
+These are **opt-in and used only in Drill mode** — teach-back and check questions never appear in other modes, handoffs or the Walkthrough sign-off. Use actual changed source and evidence, never a generic trivia quiz.
 
 ## A. Hypothesis before answer (5–10 minutes)
 

@@ -22,7 +22,7 @@ This workflow is **human-on-the-loop**: the orchestrator drives the work, and th
 - answers to open questions (asked in chat, one at a time, numbered `Question n/N` with the total, each with a recommended answer, and saved to the PRD or slice file);
 - escalations after 3 failed rounds on a slice;
 - consent before parallel worktrees are created;
-- the **Developer sign-off** (ACCEPT / REJECT) after Guide me;
+- the **Developer sign-off** (ACCEPT / REJECT) after the Walkthrough;
 - merging into `main`, pushing and releasing. The workflow never does these.
 
 ## Phase 0: Discover actual tools and repo state
@@ -53,10 +53,10 @@ Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` 
 ## Select mode and required depth
 
 - `Auto` (default): choose the smallest viable route. A new multi-slice feature goes to `Full feature`; a contained bug goes to `Fix`.
-- `Full feature`: the kanban below. Analysis → PRD + slices → development → review → QA → integration → Guide me sign-off → handoff. Skip stages that are already complete.
+- `Full feature`: the kanban below. Analysis → PRD + slices → development → review → QA → integration → Walkthrough sign-off → handoff. Skip stages that are already complete.
 - `Fix`: reproduce/characterize → owning developer → regression test → review → QA → handoff. No `prd/` folder; use `templates/task-card.md`.
 - `Audit`: read-only review of an existing diff/PR by the reviewer, then your own check of the original diff and test output. No edits without a new request.
-- `Guide me`: the walkthrough in `references/guide-me.md`, on a PRD, slice, branch or diff. Read-only unless the developer records change requests.
+- `Walkthrough` (formerly `Guide me`; the old name still works): the step-by-step tour in `references/walkthrough.md`, on a PRD, slice, branch or diff. Read-only unless the developer records change requests.
 - `Drill`: practice from the real codebase. Ask one question, **wait** for the developer's answer, then critique it with code evidence. Teach-back and check questions happen **only in Drill**; see `references/training-drills.md`.
 - `Ship`: inspect contract, evidence, rollback and monitoring, then request the developer's release decision. No automatic deploy.
 - `Deadline`: an overlay on any mode when a duration or urgency is given (see the Deadline section).
@@ -114,7 +114,7 @@ Merge each `Completed` slice into `feature/<prd-name>`, then run the build, test
 
 ## Phase 7: Developer sign-off
 
-When every slice is `Completed` and integrated, run **Guide me** (`references/guide-me.md`): a numbered step list of the major changes in execution-flow order, one step card at a time (`file:line`, What, Why, and the Tests written for that step with their results), with `next`, `back`, `go N`, `tests`, `ask`, `change` and `approve all`. Change requests are recorded in the slice files and send those slices back through development → review → QA. Then record the developer's ACCEPT or REJECT in the PRD's **Developer sign-off** (`Signed: <git user.name> · <date> · commit <sha>`) and commit it. For L2 slices, do the same per slice. No quiz questions here.
+When every slice is `Completed` and integrated, run **Walkthrough** (`references/walkthrough.md`): a numbered step list of the major changes in execution-flow order, one step card at a time (`file:line`, What, Why, and the Tests written for that step with their results), with `next`, `back`, `go N`, `tests`, `ask`, `change` and `approve all`. Change requests are recorded in the slice files and send those slices back through development → review → QA. Then record the developer's ACCEPT or REJECT in the PRD's **Developer sign-off** (`Signed: <git user.name> · <date> · commit <sha>`) and commit it. For L2 slices, do the same per slice. No quiz questions here.
 
 ## Phase 8: Handoff
 
@@ -139,7 +139,7 @@ Start with: `Deadline | Risk | Must ship | Protected verification | Cut first`. 
 - `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.`
 - `Use engineering-judgment in Fix + Deadline mode. 30 minutes. Reproduce, fix, verify, review.`
 - `Use engineering-judgment in Audit mode on this diff. What do passing tests miss?`
-- `Use engineering-judgment in Guide me mode on this branch.`
+- `Use engineering-judgment in Walkthrough mode on this branch.`
 - `Use engineering-judgment in Drill mode. Ask one real architecture/failure-mode question from this repo and wait for my answer.`
 
 **No tool can guarantee a skill self-activates, or that agents can spawn other agents in every host.** In Claude Code and Codex CLI, only the main session dispatches subagents, which is why the orchestrator is the main session. Use explicit invocation for consequential work. CI, permission boundaries and human review are stronger controls than a markdown instruction alone.

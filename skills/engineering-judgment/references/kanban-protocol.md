@@ -45,7 +45,7 @@ Every allowed move. Any other move is invalid and the orchestrator rejects it.
 | `Blocked: needs clarification` | developer answered | the status in `Blocked from:` (then clear that line) | orchestrator |
 | any | 3rd failure | `Blocked: needs clarification` with `Blocked from:` (escalate) | orchestrator |
 | `Completed` | merge/integration check fails | owning part(s) `To do`, slice `In development` (counts as failure) | orchestrator |
-| `Completed` | developer change request (Guide me) | changed part(s) `To do`, slice `In development` | orchestrator |
+| `Completed` | developer change request (Walkthrough) | changed part(s) `To do`, slice `In development` | orchestrator |
 
 ## Who writes what
 
@@ -134,7 +134,7 @@ Auto-compaction is a host setting; the skill can't change it from markdown. In P
 
 So compaction loses nothing, the files are the memory:
 
-1. **Checkpoints:** after the analysis, after each slice reaches `Completed`, after each merge, and before Guide me, make sure every status, verdict, answer and History line is in the files, then print `⚪ orchestrator: checkpoint · board saved`.
+1. **Checkpoints:** after the analysis, after each slice reaches `Completed`, after each merge, and before the Walkthrough, make sure every status, verdict, answer and History line is in the files, then print `⚪ orchestrator: checkpoint · board saved`.
 2. Agents write progress into their slice file as they go (part status, `Evidence:`, History), not only at the end.
 3. After any compaction, follow "Resume": rebuild the board from the files, never from what the summary remembers. A compacted agent re-reads its slice file before continuing.
 

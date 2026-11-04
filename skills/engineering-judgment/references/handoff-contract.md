@@ -51,7 +51,7 @@ The orchestrator merges `Completed` slices and verifies shared API contracts, ov
 
 ## Final status
 
-- `SIGNED OFF (ACCEPT)`: every slice Completed, integrated, and accepted by the developer after Guide me. Still **not** deployment approval.
+- `SIGNED OFF (ACCEPT)`: every slice Completed, integrated, and accepted by the developer after the Walkthrough. Still **not** deployment approval.
 - `REJECTED`: the developer rejected the sign-off; the reason is recorded in the PRD.
 - `BLOCKED`: an unresolved question, or a slice that hit the retry cap.
 - `NOT VERIFIED`: code exists but the required evidence is missing.

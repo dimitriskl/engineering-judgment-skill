@@ -6,11 +6,11 @@ Adapt to the current codebase. Do not apply every stage to every change.
 | --- | --- | --- | --- |
 | L0: copy/format-only edit | No PRD | Owning specialist or main agent | Relevant smoke check; no coaching interruption |
 | L1: localized bug | Reproduce; short intent; existing task | Owning specialist; focused tests | Reviewer if available; QA re-checks the bug and nearby behavior |
-| L1: new feature or cross-stack change | Analyst writes `prd/<prd-name>/` PRD + slice files (converts existing specs) | Board: fresh developer per part against the slice Contract | Reviewer → QA per slice; integration check; Guide me sign-off |
-| L2: auth, sensitive data, migrations, retries, payments | Explicit invariants, known failure scenarios, human decision for irreversible choices | Controlled scope, safe handoffs, failure-path tests | QA covers failure paths and invariants; per-slice Guide me sign-off; human release gate |
+| L1: new feature or cross-stack change | Analyst writes `prd/<prd-name>/` PRD + slice files (converts existing specs) | Board: fresh developer per part against the slice Contract | Reviewer → QA per slice; integration check; Walkthrough sign-off |
+| L2: auth, sensitive data, migrations, retries, payments | Explicit invariants, known failure scenarios, human decision for irreversible choices | Controlled scope, safe handoffs, failure-path tests | QA covers failure paths and invariants; per-slice Walkthrough sign-off; human release gate |
 | Data/report/metric change | Analyst confirms metric definitions and expected results on known data | Owning specialist; queries and transformations under test | Analyst read-only data check with exact queries and output; reviewer |
 | Existing `prd/` board | Do **not** regenerate; rebuild board from slice files | Resume next ready slice | Review, QA, sign-off |
-| Guide me | Read diff, PRD and slices | None; change requests go back to the board | Step-by-step walkthrough, then ACCEPT / REJECT |
+| Walkthrough | Read diff, PRD and slices | None; change requests go back to the board | Step-by-step walkthrough, then ACCEPT / REJECT |
 | Audit only | No PRD | No implementation unless requested | Review original diff and actual test output |
 | Drill | Use real source and current diff | No code generation until requested | Question, human answer, evidence-based feedback (the only mode with quiz questions) |
 | Deadline | Only minimal intent | Smallest shippable slice | Review + QA with one fix round; flag unverified behavior |

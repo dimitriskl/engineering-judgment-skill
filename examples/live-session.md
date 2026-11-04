@@ -19,7 +19,7 @@ The coding specialist then works on a bounded patch. The orchestration skill req
 
 **Developer:** Use engineering-judgment in Full feature mode. Add invoice approval in a C# API and Angular UI. Ask me only what is unclear.
 
-**Agent:** The analyst reads the code and an existing issue, asks one question (how to prevent simultaneous approvals, with a recommended answer), and writes `prd/invoice-approval/` with two slices. Fresh backend and frontend agents build slice 001 against its Contract. The reviewer fails round 1 (audit row not in the same transaction) and writes why into the slice file; after the fix it passes, and QA passes all four criteria. The orchestrator merges the slice, runs the integration check, then walks the developer through six steps in **Guide me** before the Developer sign-off. See the [resulting files](prd/invoice-approval/).
+**Agent:** The analyst reads the code and an existing issue, asks one question (how to prevent simultaneous approvals, with a recommended answer), and writes `prd/invoice-approval/` with two slices. Fresh backend and frontend agents build slice 001 against its Contract. The reviewer fails round 1 (audit row not in the same transaction) and writes why into the slice file; after the fix it passes, and QA passes all four criteria. The orchestrator merges the slice, runs the integration check, then walks the developer through six steps in **Walkthrough** before the Developer sign-off. See the [resulting files](prd/invoice-approval/).
 
 ## No subagents? Still usable.
 
