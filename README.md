@@ -21,6 +21,18 @@ npx skills add dimitriskl/engineering-judgment-skill --skill engineering-judgmen
 
 Choose your coding agent when prompted. Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in Guide me before you sign off.
 
+**Once: set auto-compact to 40%.** Models get less reliable once their context is more than about 40% full. Every agent that is still working on its job compacts automatically at 40% and carries on; the next job always starts in a fresh agent. This is a host setting:
+
+```powershell
+# Claude Code (main session and subagents). Windows PowerShell; on macOS/Linux: export CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=40
+setx CLAUDE_AUTOCOMPACT_PCT_OVERRIDE 40
+```
+
+```toml
+# Codex CLI: ~/.codex/config.toml (or .codex/config.toml in the project). 40% of the model's context window, e.g. 400,000 tokens → 160000
+model_auto_compact_token_limit = 160000
+```
+
 **1. Start the feature:**
 
 ```text
@@ -41,7 +53,7 @@ yes, use the recommended answer
 yes, run 002 and 003 in parallel
 ```
 
-**4. Walk through the changes in Guide me**, one step at a time:
+**4. Walk through the changes in Guide me**, one step at a time (see [what happens in this step](#what-happens-in-the-guide-me-step) below):
 
 ```text
 next
@@ -57,6 +69,34 @@ approve all
 ```text
 ACCEPT
 ```
+
+### What happens in the Guide me step
+
+When every slice is `Completed`, the orchestrator stops building and shows you what was built, **in the order the code runs** (like stepping through it with a debugger), not file by file. Nothing changes in your code during the walk; it only reads the diff since the feature branch started.
+
+```
+━━ Guide me · login-2fa · 7 steps ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   1. ✓ POST /auth/login: password ok → "2FA required"   (slice 002)
+ ▶ 2.   Verify the 6-digit code                          (slice 002)
+   3.   Lock after 5 wrong codes                         (slice 002)
+   4.   Issue the session only after 2FA                 (slice 002)
+   5.   2FA setup: secret + QR code                      (slice 001)
+   6.   Code entry screen: loading / error states        (slice 003)
+   7.   Recovery codes                                   (slice 004)
+──────────────────────────────────────────────────────────────────
+Step 2/7 · src/Auth/TwoFactorService.cs:40-58
+  What:  Checks the code against the user's secret, allowing ±30 s clock drift.
+  Why:   Acceptance criterion 002-1; a wrong or expired code returns 401.
+  Proof: tests VerifyCode_Valid_ReturnsTrue, VerifyCode_Expired_Returns401 — PASS
+──────────────────────────────────────────────────────────────────
+ next · back · go 7 · ask … · change … · approve all
+```
+
+- **Each card** shows where the code is (`file:line`), **what** it does, **why** (the slice and acceptance criterion) and the **proof** (the test and its recorded result, or `none — not verified`).
+- **`next` / `back` / `go N`** move through the list; viewed steps get `✓`. **`ask …`** answers from the code and evidence and stays on the step.
+- **`change …`** is saved in that slice file as an `open` change request and the step gets `✎`. You keep walking. At the end, those slices go back to the developer, then review and QA again, and the next Guide me shows **only the changed steps**.
+- **`approve all`** skips the rest; the sign-off honestly records which steps you didn't view.
+- **At the end** you see a one-screen summary: steps viewed, change requests, and **blind spots** (what the tests did not prove). Then you choose **ACCEPT** or **REJECT**. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is written into the PRD's `Developer sign-off` with your git name, the date and the commit, then the orchestrator offers the merge; you do it.
 
 If you stop halfway, open a new session and continue from the files: `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use engineering-judgment in Guide me mode on prd/login-2fa.`
 
@@ -131,17 +171,17 @@ The skill prints a line each time an agent starts or finishes, and says whether 
 | ⚪ orchestrator | the main session: routing, integration, your sign-off |
 
 ```text
-🟣 ▶ Now working: analyst (requirements-analyst) · PRD invoice-approval · dispatched
+🟣 ▶ Now working: analyst (requirements-analyst) · PRD invoice-approval · subagent `analyst_prd` started
 🟣 ✓ Done: analyst (requirements-analyst) · 5 stories, 2 open questions
 🟣 analyst (requirements-analyst): The plan adds one shared protection key, so all API instances can read the stored secrets.
 🟣 analyst (requirements-analyst) · Question 1/2: Should the key survive a restart? Recommended: yes, stored outside the app folder.
-🔵 ▶ Now working: backend (csharp-expert-developer) · slice 001 · dispatched
+🔵 ▶ Now working: backend (csharp-expert-developer) · slice 001 · subagent `backend_s001` started
 🔵 ✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
 🟠 ▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
 ⚪ orchestrator: Slice 001 is in review; nothing needs your input yet.
 ```
 
-The markers are plain emoji, so they show the same in Claude Code and Codex CLI. Lines the host tool prints itself (such as "Waiting for agents") come from the tool, not the skill, and have no marker.
+The markers are plain emoji, so they show the same in Claude Code and Codex CLI. Each subagent run gets a readable name (`<role>_<slice>`). When Codex prints its own line, such as "Interacted with `/root/backend_s001`", the line just before it (`🔵 ▶ Now working: backend (csharp-expert-developer) · slice 001 · subagent `backend_s001` started`) tells you which agent that is. Lines the host tool prints itself (such as "Waiting for agents") come from the tool, not the skill, and have no marker.
 
 ### What the handoff looks like
 

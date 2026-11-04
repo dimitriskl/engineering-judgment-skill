@@ -30,16 +30,18 @@ This workflow is **human-on-the-loop**: the orchestrator drives the work, and th
 Before announcing a route:
 
 1. Read `.engineering-workflow.json` from the project repository root (the workspace root, not the skill's own folder) if present. It maps roles to agent names: `agents.analyst|backend|frontend|qa|reviewer.name`. Resolve each name to an **actual agent definition** and a supported way to invoke it (`.claude/agents/`, `.codex/agents/`, `.github/agents/`, the host's subagent registry). A file in the repo does not prove the current host can call it, so verify.
-2. Read the nearest project instructions, `git status`, relevant code and tests, `CONTEXT.md`/domain docs, and the `prd/` folder. **Rebuild the board** from the slice files and `git worktree list` (see `references/kanban-protocol.md`, "Resume"). Keep unrelated uncommitted work safe.
+2. Read the nearest project instructions, `git status`, `CONTEXT.md`/domain docs, and the `prd/` folder. Find the relevant code paths by name only (to pass them to agents); reading the code itself is the agents' job. **Rebuild the board** from the slice files and `git worktree list` (see `references/kanban-protocol.md`, "Resume"). Keep unrelated uncommitted work safe.
 3. State a **one-line routing report**: `Mode | risk | board state | agents found/missing | planned gates`. For missing agents, never pretend to dispatch: use the fallback and label it, or ask for a mapping when it's indispensable.
 4. **Resume** existing PRDs and slices. Never recreate planning artifacts just to satisfy the flow.
 
 **Live agent status.** Print one line immediately before every agent run and one when it returns, so the developer always sees who is working:
 
-- `<color> ▶ Now working: <role> (<agent name>) · <phase or slice> · dispatched | FALLBACK, not independent`
+- `<color> ▶ Now working: <role> (<agent name>) · <phase or slice> · subagent `<run name>` started | FALLBACK, not independent`
 - `<color> ✓ Done: <role> (<agent name>) · <one-line result with evidence>` or `<color> ✗ Failed: <role> (<agent name>) · <reason>`
 
-Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` for your own integration and verification work. Write `dispatched` only if a separate agent was actually invoked. In parallel runs, print one `▶` line per agent. Never print a `✓` line for work that did not run.
+Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` for your own integration and verification work. Write `subagent … started` only if a separate agent was actually invoked. Name every run `<role>_<slice or phase>` (for example `backend_s001`, `analyst_prd`) when the host lets you name it, so the host's own lines (Codex: `Interacted with /root/backend_s001`) match your `▶` line and the developer knows a subagent is working. In parallel runs, print one `▶` line per agent. Never print a `✓` line for work that did not run.
+
+**Lean orchestrator.** Your context lasts the whole run, so spend it on decisions, not on code. Read the board (PRD header, slice headers, statuses, verdicts, `Evidence:` blocks), `git status` and `git diff --name-only`, and run the gate commands yourself; never read source files or run code searches that an agent can do. Ask every agent for a report of at most 10 lines; the details belong in the slice file. Relay one short line per agent result, never its full output. **Every agent, you included, auto-compacts at 40%** context used while its job is still running; a **fresh agent** starts only for the next job. Save the board at every checkpoint, check once that auto-compact at 40% is configured, and after any compaction rebuild the board from the files (`references/kanban-protocol.md`, "Context checkpoints").
 
 **Every chat message names its speaker.** Each role has one color marker: 🟣 analyst · 🔵 backend · 🟢 frontend · 🟠 reviewer · 🟡 qa · ⚪ orchestrator. Start every paragraph that relays or summarizes an agent's output with `<color> <role> (<agent name>):`, for example `🟣 analyst (requirements-analyst): The plan adds one shared protection key…`. Start your own commentary with `⚪ orchestrator:`. Never print agent text without its speaker, and never mix two agents in one paragraph.
 

@@ -102,6 +102,20 @@ ROLE_COLORS = ["🟣 analyst", "🔵 backend", "🟢 frontend", "🟠 reviewer",
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ROLE_COLORS + ["<role> (<agent name>):"]
 REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["<role> (<agent name>) · Question n/N"]
 REQUIRED["README.md"] += ROLE_COLORS + ["🟣 analyst (requirements-analyst):"]
+# Lean orchestrator: board-only reads, short agent reports.
+# Every agent auto-compacts at 40% context used while its job runs; a fresh agent starts only for a new job.
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ["**Lean orchestrator.**", "40%", "Context checkpoints", "auto-compact"]
+REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
+    "## Context checkpoints", "40%", "at most 10 lines", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
+    "model_auto_compact_token_limit", "new job",
+]
+REQUIRED["README.md"] += [
+    "### What happens in the Guide me step", "Step 2/7", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
+    "model_auto_compact_token_limit",
+]
+# The user sees in plain words that a subagent started, under a readable run name.
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ["subagent `<run name>` started", "<role>_<slice or phase>"]
+REQUIRED["README.md"] += ["Interacted with `/root/backend_s001`", "subagent `backend_s001` started"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]

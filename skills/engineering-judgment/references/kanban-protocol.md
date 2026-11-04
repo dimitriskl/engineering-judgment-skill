@@ -61,7 +61,7 @@ The orchestrator moves a slice only after checking the evidence is written in th
 
 ## Fresh agent prompts
 
-Every run is a **fresh agent**. Never rely on conversation history, because Codex does not guarantee a clean context. Every prompt is self-contained and includes: role, the slice file path, the PRD path, the files it may change, the update rules from "Who writes what", and what to return.
+Every run is a **fresh agent**. Never rely on conversation history, because Codex does not guarantee a clean context. Every prompt is self-contained and includes: role, the slice file path, the PRD path, the files it may change, the update rules from "Who writes what", and what to return. Every prompt ends with: "Return at most 10 lines: status, files changed, key evidence, questions. Everything else goes in the slice or PRD file." This keeps the orchestrator's context small.
 
 - **Analyst:** the request, the developer's answers so far, domain docs, relevant code paths. Do the work in `references/analyst-playbook.md`. Return the files written and the open questions, each with a recommended answer.
 - **Backend / frontend:** "Implement only your part of `<slice file>` against its Contract. Read the PRD, the slice, and any Review/QA notes and Change requests addressed to your part. Set your part to `Developing`; when every test command passed, fill your part's `Evidence:` block (`command | exit code | key output`) and set it to `Developed`. Add one History line. If you need a file outside your Owned files, stop and return a question instead of editing it. Return: changed files, the same evidence, assumptions, questions. Do not commit or stage."
@@ -119,6 +119,26 @@ A new session rebuilds the board from the files, never from memory:
 1. Read every `prd/*/prd-tasks/*.md` header (`Status:`, `Blocked by:`, `Failures:`) and each part status.
 2. Run `git worktree list`. For each worktree on a `feature/<prd-name>-<slice-id>` branch, read that worktree's copy of the slice file instead.
 3. Report the board to the developer in one line per slice, then continue with the next ready slice.
+
+## Context checkpoints
+
+Models get less reliable as their context fills; past about 40% used, they start to miss earlier decisions. Two rules keep every agent below that line:
+
+- **One job, one fresh agent.** A job is the analysis, one part of one slice, one review or one QA run. Every **new job** starts in a fresh agent; a job is never handed to an agent that already did another one.
+- **Auto-compact at 40% while a job runs.** If an agent (the orchestrator included) reaches 40% context used before its job is done, it compacts and continues the same job. It is not replaced mid-job.
+
+Auto-compaction is a host setting; the skill can't change it from markdown. In Phase 0, check once whether it is set and, if not, tell the developer the exact setting:
+
+- **Claude Code:** environment variable `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=40`, exported in the shell before starting (applies to the main session and its subagents).
+- **Codex CLI:** `model_auto_compact_token_limit` in `~/.codex/config.toml` or the project's `.codex/config.toml`, set to 40% of the model's context window (for example `160000` for a 400,000-token window). Custom agents inherit it unless their own file overrides it.
+
+So compaction loses nothing, the files are the memory:
+
+1. **Checkpoints:** after the analysis, after each slice reaches `Completed`, after each merge, and before Guide me, make sure every status, verdict, answer and History line is in the files, then print `⚪ orchestrator: checkpoint · board saved`.
+2. Agents write progress into their slice file as they go (part status, `Evidence:`, History), not only at the end.
+3. After any compaction, follow "Resume": rebuild the board from the files, never from what the summary remembers. A compacted agent re-reads its slice file before continuing.
+
+Keep command output small: show only the lines that prove a result (exit code, test summary), never full logs.
 
 ## Verdict enforcement
 
