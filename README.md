@@ -92,7 +92,7 @@ If your repository already has a **C# agent**, **Angular agent**, **code reviewe
 
 It checks for existing PRDs/tasks first, delegates code to the appropriate existing agents, reviews changed source and actual test output, and helps you keep responsibility for consequential decisions.
 
-For *any* technology stack, map your own agent names in an optional `.engineering-workflow.json` (copy [config.example.json](config.example.json)):
+For *any* technology stack, map your own agent names in an optional `.engineering-workflow.json` placed in the **root of your project repository** (the repo you work in, not this skill's folder). Copy [config.example.json](config.example.json) there and rename it:
 
 ```json
 {
