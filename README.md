@@ -78,15 +78,29 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 
 ### Who is working right now
 
-The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback:
+The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback. Every message also starts with **who is speaking**, and each role has its own color marker, so you never have to guess which agent wrote a paragraph:
+
+| Marker | Role |
+| --- | --- |
+| 🟣 analyst | writes the PRD and slices |
+| 🔵 backend | builds the backend part |
+| 🟢 frontend | builds the frontend part |
+| 🟠 reviewer | reviews each slice |
+| 🟡 qa | checks the acceptance criteria |
+| ⚪ orchestrator | the main session: routing, integration, your sign-off |
 
 ```text
-▶ Now working: analyst (requirements-analyst) · PRD invoice-approval · dispatched
-✓ Done: analyst (requirements-analyst) · 5 stories, 2 open questions
-▶ Now working: backend (csharp-expert-developer) · slice 001 · dispatched
-✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
-▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
+🟣 ▶ Now working: analyst (requirements-analyst) · PRD invoice-approval · dispatched
+🟣 ✓ Done: analyst (requirements-analyst) · 5 stories, 2 open questions
+🟣 analyst (requirements-analyst): The plan adds one shared protection key, so all API instances can read the stored secrets.
+🟣 analyst (requirements-analyst) · Question 1/2: Should the key survive a restart? Recommended: yes, stored outside the app folder.
+🔵 ▶ Now working: backend (csharp-expert-developer) · slice 001 · dispatched
+🔵 ✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
+🟠 ▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
+⚪ orchestrator: Slice 001 is in review; nothing needs your input yet.
 ```
+
+The markers are plain emoji, so they show the same in Claude Code and Codex CLI. Lines the host tool prints itself (such as "Waiting for agents") come from the tool, not the skill, and have no marker.
 
 ### What the handoff looks like
 

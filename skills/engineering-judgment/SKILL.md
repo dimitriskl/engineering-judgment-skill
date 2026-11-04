@@ -36,10 +36,12 @@ Before announcing a route:
 
 **Live agent status.** Print one line immediately before every agent run and one when it returns, so the developer always sees who is working:
 
-- `▶ Now working: <role> (<agent name>) · <phase or slice> · dispatched | FALLBACK, not independent`
-- `✓ Done: <role> (<agent name>) · <one-line result with evidence>` or `✗ Failed: <role> (<agent name>) · <reason>`
+- `<color> ▶ Now working: <role> (<agent name>) · <phase or slice> · dispatched | FALLBACK, not independent`
+- `<color> ✓ Done: <role> (<agent name>) · <one-line result with evidence>` or `<color> ✗ Failed: <role> (<agent name>) · <reason>`
 
 Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` for your own integration and verification work. Write `dispatched` only if a separate agent was actually invoked. In parallel runs, print one `▶` line per agent. Never print a `✓` line for work that did not run.
+
+**Every chat message names its speaker.** Each role has one color marker: 🟣 analyst · 🔵 backend · 🟢 frontend · 🟠 reviewer · 🟡 qa · ⚪ orchestrator. Start every paragraph that relays or summarizes an agent's output with `<color> <role> (<agent name>):`, for example `🟣 analyst (requirements-analyst): The plan adds one shared protection key…`. Start your own commentary with `⚪ orchestrator:`. Never print agent text without its speaker, and never mix two agents in one paragraph.
 
 ## Select mode and required depth
 

@@ -9,6 +9,7 @@
 - Kanban protocol: exact statuses, transition table, who writes what, questions asked in chat and saved to the files, 3-failure retry cap, `feature/<prd-name>` branches, optional parallel worktrees, integration check after merge, resume from files, `git diff` write-scope enforcement.
 - Reviewer and QA write their own verdicts into the slice file; FAIL sends work back to the developer.
 - New **Guide me** mode: numbered step list in execution-flow order, one step card at a time (`next`, `back`, `go N`, `ask`, `change`, `approve all`), ending in a recorded **Developer sign-off** (ACCEPT / REJECT). L2 slices are signed off individually.
+- Every chat message names its speaker (`<color> <role> (<agent name>):`), with one color marker per role: 🟣 analyst, 🔵 backend, 🟢 frontend, 🟠 reviewer, 🟡 qa, ⚪ orchestrator. Questions show who raised them and `Question n/N`.
 - **Human-on-the-loop** made explicit. Teach-back questions now happen only in Drill mode.
 - Validator checks required sections, banned planning-skill names, and teach-back placement. Example PRD folder in `examples/prd/`.
 - Before each agent run the orchestrator records a snapshot and checks the agent stayed in scope; the developer's uncommitted work is never touched. Developers record an `Evidence:` block; blocked slices record `Blocked from:`; change requests are `open` / `done`.

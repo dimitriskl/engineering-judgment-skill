@@ -97,6 +97,11 @@ REQUIRED["README.md"] += ["## Updating the skill", "npx skills check", "npx skil
 # The default analyst is requirements-analyst, linked for download.
 REQUIRED[".engineering-workflow.json"] = ['"analyst": { "name": "requirements-analyst" }']
 REQUIRED["README.md"] += ["https://github.com/dimitriskl/requirements-analyst", '"analyst": { "name": "requirements-analyst" }']
+# Chat text names its speaker, with one color marker per role.
+ROLE_COLORS = ["🟣 analyst", "🔵 backend", "🟢 frontend", "🟠 reviewer", "🟡 qa", "⚪ orchestrator"]
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ROLE_COLORS + ["<role> (<agent name>):"]
+REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["<role> (<agent name>) · Question n/N"]
+REQUIRED["README.md"] += ROLE_COLORS + ["🟣 analyst (requirements-analyst):"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
