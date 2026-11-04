@@ -19,14 +19,55 @@ From your project directory, with Node.js and a supported coding-agent client in
 npx skills add dimitriskl/engineering-judgment-skill --skill engineering-judgment
 ```
 
-Choose your coding agent when prompted. Then open a **new agent session** and ask:
+Choose your coding agent when prompted. Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in Guide me before you sign off.
+
+**1. Start the feature:**
 
 ```text
-Use engineering-judgment in Auto mode.
-Implement this change in my repo: [describe the change].
-Use existing agents, PRDs, and tasks if available.
-Show me what actually ran, what the checks prove, and what remains unverified.
+Use engineering-judgment in Full feature mode.
+Add two-factor authentication (2FA) to login: after the password, the user enters a 6-digit code from an authenticator app.
+Ask me only what is unclear, then finish with Guide me so I can walk through the changes and sign off.
 ```
+
+**2. Answer the questions**, one at a time (`🟣 analyst (requirements-analyst) · Question 1/4: …`). Reply with your answer, or accept the recommended one:
+
+```text
+yes, use the recommended answer
+```
+
+**3. Allow parallel work** if the skill asks (independent slices in separate worktrees), or keep it serial:
+
+```text
+yes, run 002 and 003 in parallel
+```
+
+**4. Walk through the changes in Guide me**, one step at a time:
+
+```text
+next
+back
+go 4
+ask why is the code checked before the session is created?
+change lock the account for 15 minutes after 5 wrong codes
+approve all
+```
+
+**5. Sign off:**
+
+```text
+ACCEPT
+```
+
+If you stop halfway, open a new session and continue from the files: `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use engineering-judgment in Guide me mode on prd/login-2fa.`
+
+**What each agent does in this example:**
+
+- ⚪ **orchestrator** (your main session): creates `feature/login-2fa`, runs the board, asks you the questions, and records your sign-off.
+- 🟣 **analyst**: reads the login code and writes `prd/login-2fa/` with the PRD and slices (e.g. 2FA setup, code check at login, recovery codes), each with its contract and tests.
+- 🔵 **backend**: builds each slice's API part (secret storage, code verification, attempt limits) and records its test evidence.
+- 🟢 **frontend**: builds each slice's screens (QR-code setup, code entry, error states) against the same contract.
+- 🟠 **reviewer**: reviews each slice for bugs and security gaps (secret handling, brute force, bypasses); FAIL sends it back to the developer.
+- 🟡 **qa**: checks every acceptance criterion (wrong code, expired code, lockout); PASS marks the slice Completed.
 
 The CLI and agent availability vary by environment. **Installation does not guarantee auto-activation**. Explicitly invoke `engineering-judgment` for consequential tasks.
 
