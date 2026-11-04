@@ -64,6 +64,11 @@ REQUIRED = {
         "## Commands", "next", "back", "go N", "ask", "change", "approve all",
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
+    "skills/engineering-judgment/SKILL.md": [
+        'version: "3.0.0"', "human-on-the-loop", "`Guide me`", "references/kanban-protocol.md",
+        "references/analyst-playbook.md", "references/guide-me.md", "templates/prd.md",
+        "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
+    ],
 }
 for rel, phrases in REQUIRED.items():
     path = root / rel
@@ -74,6 +79,14 @@ for rel, phrases in REQUIRED.items():
     for phrase in phrases:
         if phrase not in text:
             errors.append(f'{rel} missing: "{phrase}"')
+
+# Teach-back questions belong only to Drill mode: in SKILL.md, a line mentioning
+# teach-back must also mention Drill.
+skill_md = skill_dir / "SKILL.md"
+if skill_md.is_file():
+    for n, line in enumerate(skill_md.read_text(encoding="utf-8").splitlines(), 1):
+        if re.search(r"teach-back", line, re.I) and "Drill" not in line:
+            errors.append(f"SKILL.md:{n} mentions teach-back outside Drill")
 
 # The skill is self-contained: external planning skills must not be referenced.
 BANNED = ["grill-with-docs", "grillme-with-docs", "to-prd", "to-tasks", "to-issues", "to-tickets"]
