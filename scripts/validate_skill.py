@@ -31,6 +31,44 @@ else:
 for p in ("README.md", "LICENSE", "CONTRIBUTING.md", ".engineering-workflow.json"):
     if not (root / p).is_file():
         errors.append(f"Missing {p}")
+
+# Content checks: each file must contain every listed phrase.
+REQUIRED = {
+    "skills/engineering-judgment/templates/prd.md": [
+        "## Problem Statement", "## Solution", "## User Stories",
+        "## Invariants", "## Implementation Decisions", "## Testing Decisions",
+        "## Out of Scope", "## Open questions & answers", "## Slices",
+        "## Developer sign-off", "## Further Notes",
+    ],
+    "skills/engineering-judgment/templates/slice.md": [
+        "Status:", "Blocked by:", "Failures:", "## What to build", "## Contract",
+        "## Backend part", "## Frontend part", "Owned files:", "Test commands:",
+        "Part status:", "## Acceptance criteria", "## Questions & answers",
+        "## Review notes", "## QA notes", "## Change requests", "## History",
+    ],
+}
+for rel, phrases in REQUIRED.items():
+    path = root / rel
+    if not path.is_file():
+        errors.append(f"Missing file: {rel}")
+        continue
+    text = path.read_text(encoding="utf-8")
+    for phrase in phrases:
+        if phrase not in text:
+            errors.append(f'{rel} missing: "{phrase}"')
+
+# The skill is self-contained: external planning skills must not be referenced.
+BANNED = ["grill-with-docs", "grillme-with-docs", "to-prd", "to-tasks", "to-issues", "to-tickets"]
+BANNED_SCOPE = ["skills", "README.md", ".engineering-workflow.json", "examples"]
+banned_re = re.compile(r"(?<![\w-])(" + "|".join(map(re.escape, BANNED)) + r")(?![\w-])")
+for scope in BANNED_SCOPE:
+    target = root / scope
+    files = [target] if target.is_file() else sorted(
+        p for p in target.rglob("*") if p.suffix in (".md", ".json")
+    )
+    for f in files:
+        for name in sorted(set(banned_re.findall(f.read_text(encoding="utf-8")))):
+            errors.append(f'{f.relative_to(root).as_posix()} mentions banned skill name "{name}"')
 if errors:
     for error in errors:
         print("ERROR:", error, file=sys.stderr)
