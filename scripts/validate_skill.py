@@ -59,6 +59,11 @@ REQUIRED = {
         "vertical slice", "## Contract first", "exact files", "## Existing plans",
         "## Data checks", "read-only",
     ],
+    "skills/engineering-judgment/references/guide-me.md": [
+        "## Step list", "execution-flow order", "## Step card", "What:", "Why:", "Proof:",
+        "## Commands", "next", "back", "go N", "ask", "change", "approve all",
+        "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
+    ],
 }
 for rel, phrases in REQUIRED.items():
     path = root / rel
