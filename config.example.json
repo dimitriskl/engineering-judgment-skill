@@ -42,15 +42,5 @@
       "to-issues",
       "to-tickets"
     ]
-  },
-  "verification": {
-    "backend": null,
-    "frontend": null,
-    "integration": null
-  },
-  "preferences": {
-    "default_mode": "Auto",
-    "coaching": "one-question-at-handoff",
-    "reviewer_edits_code": false
   }
 }
