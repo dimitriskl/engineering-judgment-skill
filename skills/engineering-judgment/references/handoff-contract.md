@@ -23,6 +23,15 @@ Provide only a bounded, testable slice:
 
 Do not silently commit/push/merge/deploy or overwrite unrelated changes.
 
+## QA request
+
+QA is read-only: it runs checks and reports, and writes no code (neither tests nor fixes). Give it the acceptance criteria, changed files, and the exact build/test/run commands.
+
+- **Run:** existing build and test suites, then exercise the running feature against each acceptance criterion — happy path, edge cases, failure paths, and loading/empty/error states for UI.
+- **Return:** `criterion | how checked | PASS / FAIL / NOT RUN | evidence`, defects with reproduction steps, and acceptance criteria with no automated test.
+
+Defects and missing tests go back to the owning developer. After fixes, QA re-runs the affected criteria.
+
 ## Independent reviewer request
 
 Give the reviewer **original changed files**, baseline requirements and actual command outputs, **not only** the implementation agent's summary. Require:

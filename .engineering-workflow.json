@@ -3,6 +3,7 @@
     "analyst": { "name": "my-analyst-agent" },
     "backend": { "name": "my-backend-agent" },
     "frontend": { "name": "my-frontend-agent" },
+    "qa": { "name": "my-qa-agent" },
     "reviewer": { "name": "my-code-reviewer" }
   }
 }

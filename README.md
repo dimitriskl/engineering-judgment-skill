@@ -55,7 +55,8 @@ flowchart TD
   C --> E[Existing specialist agent or main coding agent]
   D --> E
   E --> F[Build + tests + observable verification]
-  F --> G[Independent reviewer when available]
+  F --> Q[QA agent: runs checks against each acceptance criterion, read-only]
+  Q --> G[Independent reviewer when available]
   G --> H[Findings + evidence + blind spots]
   H --> I[Human judgment and release decision]
 ```
@@ -101,9 +102,9 @@ Example output only, not a test result from your project.
 
 ## Existing workflow? Keep it.
 
-If your repository already has an **analyst agent**, **C# agent**, **Angular agent**, **code reviewer**, and planning skills such as Matt Pocock's `grill-with-docs → to-prd → to-tasks/to-issues`, the skill can route work through them **when the host supports invoking them**.
+If your repository already has an **analyst agent**, **C# agent**, **Angular agent**, **QA agent**, **code reviewer**, and planning skills such as Matt Pocock's `grill-with-docs → to-prd → to-tasks/to-issues`, the skill can route work through them **when the host supports invoking them**.
 
-It checks for existing PRDs/tasks first, asks the analyst for requirements (and for data checks when reports, queries, or metrics change), delegates code to the appropriate existing agents, reviews changed source and actual test output, and helps you keep responsibility for consequential decisions.
+It checks for existing PRDs/tasks first, asks the analyst for requirements (and for data checks when reports, queries, or metrics change), delegates code to the appropriate existing agents, has the QA agent check every acceptance criterion without writing code, reviews changed source and actual test output, and helps you keep responsibility for consequential decisions.
 
 For *any* technology stack, map your own agent names in an optional `.engineering-workflow.json` placed in the **root of your project repository** (the repo you work in, not this skill's folder). Copy [.engineering-workflow.json](.engineering-workflow.json) there and replace the names with your own:
 
@@ -113,6 +114,7 @@ For *any* technology stack, map your own agent names in an optional `.engineerin
     "analyst": { "name": "my-analyst-agent" },
     "backend": { "name": "my-backend-agent" },
     "frontend": { "name": "my-frontend-agent" },
+    "qa": { "name": "my-qa-agent" },
     "reviewer": { "name": "my-code-reviewer" }
   }
 }

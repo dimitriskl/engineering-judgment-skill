@@ -1,8 +1,9 @@
 # Changelog
 
-## 2.2.0 — Analyst role and live agent status (2026-11-04)
+## 2.2.0 — Analyst and QA roles, live agent status (2026-11-04)
 
 - Added an optional **analyst** agent: read-only requirements analysis before PRD (stories, acceptance criteria, edge cases, slices) and data checks for query/report/metric changes.
+- Added an optional **QA** agent (new Phase 5): read-only — runs builds/tests and exercises the feature against each acceptance criterion, reports PASS/FAIL with evidence and untested criteria; writes no code. Later phases renumbered.
 - Added **live agent status** lines (`▶ Now working` / `✓ Done` / `✗ Failed`) showing which agent is working and whether it was really dispatched or a main-agent fallback.
 - Renamed `config.example.json` to `.engineering-workflow.json` so it can be copied without renaming; documented that it belongs in the project repository root.
 - Removed unused config keys (`version`, `search_terms`, `skills`, `verification`, `preferences`); only `agents.<role>.name` is read.

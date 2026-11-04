@@ -5,9 +5,9 @@ Adapt to the current codebase. Do not apply every stage to every change.
 | Situation | Discovery and planning | Implementation | Review and learning |
 | --- | --- | --- | --- |
 | L0: copy/format-only edit | No PRD | Owning specialist or main agent | Relevant smoke check; no coaching interruption |
-| L1: localized bug | Reproduce; short intent; existing task | Owning specialist; focused tests | Reviewer if available; one question at handoff |
-| L1: new feature or cross-stack change | Reuse existing spec or run interview → analyst (stories, acceptance criteria, edge cases) → PRD → tasks if needed | Explicit interface/DTO contract; bounded slices | Independent reviewer; end-to-end or contract evidence |
-| L2: auth, sensitive data, migrations, retries, payments | Explicit invariants, known failure scenarios, human decision for irreversible choices | Controlled scope, safe handoffs, failure-path tests | Independent verification and human release gate |
+| L1: localized bug | Reproduce; short intent; existing task | Owning specialist; focused tests | QA re-checks the bug and nearby behavior; reviewer if available; one question at handoff |
+| L1: new feature or cross-stack change | Reuse existing spec or run interview → analyst (stories, acceptance criteria, edge cases) → PRD → tasks if needed | Explicit interface/DTO contract; bounded slices | QA checks each acceptance criterion; independent reviewer; end-to-end or contract evidence |
+| L2: auth, sensitive data, migrations, retries, payments | Explicit invariants, known failure scenarios, human decision for irreversible choices | Controlled scope, safe handoffs, failure-path tests | QA covers failure paths and invariants; independent verification and human release gate |
 | Data/report/metric change | Analyst confirms metric definitions and expected results on known data | Owning specialist; queries and transformations under test | Analyst read-only data check with exact queries and output; reviewer |
 | Prepared task/PRD | Do **not** regenerate | Resume next smallest slice | Verify, review, hand off |
 | Audit only | No PRD | No implementation unless requested | Review original diff and actual test output |
