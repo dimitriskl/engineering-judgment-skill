@@ -16,7 +16,7 @@ AI coding agents can write a feature in minutes. That does **not** mean the team
 From your project directory, with Node.js and a supported coding-agent client installed:
 
 ```bash
-npx skills add dimitriskl/Engineering-judgment-skill --skill engineering-judgment
+npx skills add dimitriskl/engineering-judgment-skill --skill engineering-judgment
 ```
 
 Choose your coding agent when prompted. Then open a **new agent session** and ask:
@@ -81,8 +81,8 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback:
 
 ```text
-▶ Now working: analyst (data-analyst-expert) · PRD invoice-approval · dispatched
-✓ Done: analyst (data-analyst-expert) · 5 stories, 2 open questions
+▶ Now working: analyst (data-analyst-bi-expert) · PRD invoice-approval · dispatched
+✓ Done: analyst (data-analyst-bi-expert) · 5 stories, 2 open questions
 ▶ Now working: backend (csharp-expert-developer) · slice 001 · dispatched
 ✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
 ▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
@@ -121,36 +121,54 @@ Each slice moves through a kanban, and every step runs in a **fresh agent** that
 `To do → In development → In review → In QA → Completed` (or `Blocked: needs clarification`)
 
 - **Analyst** writes the PRD and slices (each fully implementable: exact files, contract, test commands).
-- **Backend / frontend developers** build their part and mark it `Developed` with test evidence.
+- **Backend / frontend developers** build only their own part against the slice's written Contract, fill in its `Evidence:` block (`command | exit code | output`) and mark it `Developed`. Within one working tree the parts run one after another.
 - **Reviewer** writes PASS or FAIL into the slice file; FAIL goes back to the developer with what must be done.
 - **QA** checks every acceptance criterion and writes PASS or FAIL; FAIL goes back to the developer.
-- After **3 failures** on one slice, the orchestrator stops and asks you.
+- After **3 failures** on one slice (review, QA or the post-merge check), the orchestrator stops and asks you. A blocked slice records `Blocked from:` so it can resume exactly where it stopped.
 - Independent slices can run **in parallel git worktrees**, only if you say yes.
-- Work happens on `feature/<prd-name>`; nothing is merged to `main` or pushed for you.
+- Work happens on `feature/<prd-name>`, created before the analyst runs; the starting point is recorded as `Base:` in the PRD. Nothing is merged to `main` or pushed for you.
+- **Your own work is safe.** If you have uncommitted changes, the orchestrator asks you to stash, commit or stop before any agent runs. Before every agent run it records a snapshot (HEAD + `git status`); afterwards it checks that the agent only touched what its role allows, reverts anything else from that run only, and allows one corrective re-run before asking you.
+- **Resume any time.** A new session rebuilds the board from the files and `git worktree list`; nothing depends on chat history.
 
-At the end, **Guide me** shows a numbered list of the major changes in the order the code runs, one step at a time (`file:line`, what, why, proof). Type `next`, `back`, `go N`, `ask …`, `change …` (sent back to the developer) or `approve all`. Your decision is recorded as the **Developer sign-off** in the PRD: ACCEPT or REJECT, with your git name, date and commit. See the [example PRD folder](examples/prd/invoice-approval/).
+At the end, **Guide me** shows a numbered list of the major changes in the order the code runs, one step at a time (`file:line`, what, why, proof). Type `next`, `back`, `go N`, `ask …`, `change …` (saved as an `open` change request and sent back to the developer) or `approve all`. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is recorded as the **Developer sign-off** in the PRD: ACCEPT or REJECT, with your git name, date and commit. See the [example PRD folder](examples/prd/invoice-approval/).
 
 You own: answers to open questions, escalations, consent to worktrees, the sign-off, and merge/push/release.
 
-## Map your own agents
+## Agents: use mine or map your own
 
-Map your agents to the five roles in an optional `.engineering-workflow.json` placed in the **root of your project repository** (the repo you work in, not this skill's folder). Copy [.engineering-workflow.json](.engineering-workflow.json) there and replace the names with your own:
+The skill works with any agents. These are the ones it was built and tested with — each is a free, MIT-licensed repository with a Claude Code (`.md`) and a Codex (`.toml`) version:
+
+| Role | Agent | What it does in the workflow | Download |
+| --- | --- | --- | --- |
+| `analyst` | data-analyst-bi-expert | Writes the PRD and slices; read-only data checks | [repo](https://github.com/dimitriskl/data-analyst-bi-expert) |
+| `backend` | csharp-expert-developer | Builds the backend part of each slice (.NET) | [repo](https://github.com/dimitriskl/csharp-expert-developer) |
+| `frontend` | angular-typescript-developer | Builds the frontend part of each slice (Angular) | [repo](https://github.com/dimitriskl/angular-typescript-developer) |
+| `qa` | qa-automation-engineer | Checks every acceptance criterion, read-only; writes its own verdict | [repo](https://github.com/dimitriskl/qa-automation-engineer) |
+| `reviewer` | senior-code-reviewer (v1.1.0+) | Reviews each slice, read-only except its own verdict | [repo](https://github.com/dimitriskl/senior-code-reviewer) |
+
+Also available: [ui-ux-developer](https://github.com/dimitriskl/ui-ux-developer) (an alternative `frontend` focused on UX and accessibility) and [software-architect](https://github.com/dimitriskl/software-architect) (for design questions outside the board).
+
+Each repository's README shows how to install the agent for one project (`.claude/agents/`, `.codex/agents/`) or for all your projects (`~/.claude/agents/`, `~/.codex/agents/`).
+
+**Connect them to the skill** with `.engineering-workflow.json` in the **root of your project repository** (the repo you work in, not this skill's folder). The [default file](.engineering-workflow.json) already maps the agents above — copy it as it is:
 
 ```json
 {
   "agents": {
-    "analyst": { "name": "my-analyst-agent" },
-    "backend": { "name": "my-backend-agent" },
-    "frontend": { "name": "my-frontend-agent" },
-    "qa": { "name": "my-qa-agent" },
-    "reviewer": { "name": "my-code-reviewer" }
+    "analyst": { "name": "data-analyst-bi-expert" },
+    "backend": { "name": "csharp-expert-developer" },
+    "frontend": { "name": "angular-typescript-developer" },
+    "qa": { "name": "qa-automation-engineer" },
+    "reviewer": { "name": "senior-code-reviewer" }
   }
 }
 ```
 
-The reviewer and QA write their verdicts into the slice file themselves, so they need permission to edit files. The orchestrator checks with `git diff` that they changed nothing else. If your reviewer can't edit files, the orchestrator records its verdict word for word, labelled with the agent's name.
+**Using other agents?** Replace each `name` with your own agent's name. Only `agents.<role>.name` is read; the roles are `analyst`, `backend`, `frontend`, `qa` and `reviewer`. Leave a role out if you have no agent for it.
 
-Names above are examples. **A config file does not create subagents.** If delegation is unavailable, the main agent does that step itself and labels it `FALLBACK, not independent`. No third-party planning skills are needed.
+The reviewer and QA write their verdicts into the slice file themselves, so they need permission to edit files (in Codex, a `workspace-write` sandbox). The orchestrator checks that they changed nothing else. If a reviewer can't edit files, the orchestrator records its verdict word for word, labelled with the agent's name.
+
+**A config file does not create subagents.** If an agent isn't installed or can't be invoked, the main agent does that step itself and labels it `FALLBACK, not independent`. No third-party planning skills are needed.
 
 ## Manual installation (no Node required)
 
@@ -165,7 +183,7 @@ Copy the *entire* [`skills/engineering-judgment/`](skills/engineering-judgment/)
 Example (macOS/Linux):
 
 ```bash
-git clone https://github.com/dimitriskl/Engineering-judgment-skill.git
+git clone https://github.com/dimitriskl/engineering-judgment-skill.git
 mkdir -p YourProject/.agents/skills
 cp -R Engineering-judgment-skill/skills/engineering-judgment YourProject/.agents/skills/
 ```
@@ -173,7 +191,7 @@ cp -R Engineering-judgment-skill/skills/engineering-judgment YourProject/.agents
 Example (PowerShell):
 
 ```powershell
-git clone https://github.com/dimitriskl/Engineering-judgment-skill.git
+git clone https://github.com/dimitriskl/engineering-judgment-skill.git
 New-Item -ItemType Directory -Force C:\src\YourProject\.claude\skills | Out-Null
 Copy-Item -Recurse .\Engineering-judgment-skill\skills\engineering-judgment C:\src\YourProject\.claude\skills\
 ```

@@ -1,9 +1,9 @@
 {
   "agents": {
-    "analyst": { "name": "my-analyst-agent" },
-    "backend": { "name": "my-backend-agent" },
-    "frontend": { "name": "my-frontend-agent" },
-    "qa": { "name": "my-qa-agent" },
-    "reviewer": { "name": "my-code-reviewer" }
+    "analyst": { "name": "data-analyst-bi-expert" },
+    "backend": { "name": "csharp-expert-developer" },
+    "frontend": { "name": "angular-typescript-developer" },
+    "qa": { "name": "qa-automation-engineer" },
+    "reviewer": { "name": "senior-code-reviewer" }
   }
 }
