@@ -84,6 +84,15 @@ Criteria with no automated test: …
 
 - Change request by <git user.name> · YYYY-MM-DD · `file:line` · <what to do differently>
 
+## Developer sign-off
+
+<!-- L2 slices only (auth, money, personal data, migrations, retries/idempotency, concurrency). Filled in by the orchestrator after Guide me on this slice. Delete for L0/L1. -->
+
+- Steps viewed: <list or "approved without viewing steps N–M">
+- Not proved (blind spots): …
+- Decision: ACCEPT | REJECT — reason: …
+- Signed: <git user.name> · <date> · commit <sha>
+
 ## History
 
 <!-- Append-only. Every agent adds one line per run. Format: YYYY-MM-DD | role (agent) | action | result -->

@@ -45,6 +45,7 @@ REQUIRED = {
         "## Backend part", "## Frontend part", "Owned files:", "Test commands:",
         "Part status:", "## Acceptance criteria", "## Questions & answers",
         "## Review notes", "## QA notes", "## Change requests", "## History",
+        "## Developer sign-off",
     ],
     "skills/engineering-judgment/references/kanban-protocol.md": [
         "## Folder layout", "## Statuses", "## Transition table", "## Who writes what",
@@ -74,7 +75,12 @@ REQUIRED = {
     ],
     "skills/engineering-judgment/references/orchestration-matrix.md": ["Guide me", "prd/"],
     "skills/engineering-judgment/references/training-drills.md": ["teach-back"],
+    "README.md": ["Guide me", "prd/", "human-on-the-loop", "Developer sign-off"],
+    "CHANGELOG.md": ["## 3.0.0"],
 }
+# The example PRD folder must follow the templates.
+REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
+REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
 for rel, phrases in REQUIRED.items():
     path = root / rel
     if not path.is_file():
