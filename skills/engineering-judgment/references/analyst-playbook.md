@@ -24,7 +24,7 @@ Return each question to the orchestrator in this form:
 
 `Q<n> · <question> · recommended answer: <your recommendation and why> · blocks: <PRD section or slice IDs>`
 
-Order them by impact. The orchestrator asks the developer one at a time and writes the answers into the PRD's `Open questions & answers`. A fresh analyst then continues from the updated file.
+Order them by impact and return them all at once, so the orchestrator knows the total. The orchestrator asks the developer one at a time, numbered `Question n/N`, and writes the answers into the PRD's `Open questions & answers`. A fresh analyst then continues from the updated file.
 
 ## Writing the PRD
 

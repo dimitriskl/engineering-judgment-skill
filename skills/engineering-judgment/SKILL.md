@@ -19,7 +19,7 @@ The goal is **verified value per minute, with a developer who knows what they sh
 
 This workflow is **human-on-the-loop**: the orchestrator drives the work, and the developer steps in only where their judgment is needed. Agents never stop for routine approvals. They stop **only when something is unclear** and changes what gets built. The developer owns:
 
-- answers to open questions (asked in chat, one at a time, each with a recommended answer, and saved to the PRD or slice file);
+- answers to open questions (asked in chat, one at a time, numbered `Question n/N` with the total, each with a recommended answer, and saved to the PRD or slice file);
 - escalations after 3 failed rounds on a slice;
 - consent before parallel worktrees are created;
 - the **Developer sign-off** (ACCEPT / REJECT) after Guide me;

@@ -88,6 +88,11 @@ REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
 REQUIRED["skills/engineering-judgment/references/guide-me.md"] += ["· open", "· done", "Base:"]
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["before dispatching the analyst", "Evidence:"]
 REQUIRED["skills/engineering-judgment/references/handoff-contract.md"] += ["git status --porcelain"]
+# Questions to the developer show their position and the total, e.g. "Question 4/10".
+REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["Question n/N"]
+REQUIRED["skills/engineering-judgment/references/analyst-playbook.md"] += ["Question n/N"]
+REQUIRED["skills/engineering-judgment/references/training-drills.md"] += ["Question n/N"]
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ["Question n/N"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
