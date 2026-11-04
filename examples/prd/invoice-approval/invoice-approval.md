@@ -2,7 +2,7 @@
 
 *Illustrative example of the files the skill produces; not a real project.*
 
-PRD: invoice-approval · Created: 2026-11-04 · Analyst: data-analyst-bi-expert
+PRD: invoice-approval · Created: 2026-11-04 · Analyst: requirements-analyst
 Branch: feature/invoice-approval · Base: develop@8a41c07
 
 ## Problem Statement

@@ -81,8 +81,8 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback:
 
 ```text
-▶ Now working: analyst (data-analyst-bi-expert) · PRD invoice-approval · dispatched
-✓ Done: analyst (data-analyst-bi-expert) · 5 stories, 2 open questions
+▶ Now working: analyst (requirements-analyst) · PRD invoice-approval · dispatched
+✓ Done: analyst (requirements-analyst) · 5 stories, 2 open questions
 ▶ Now working: backend (csharp-expert-developer) · slice 001 · dispatched
 ✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
 ▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
@@ -140,13 +140,13 @@ The skill works with any agents. These are the ones it was built and tested with
 
 | Role | Agent | What it does in the workflow | Download |
 | --- | --- | --- | --- |
-| `analyst` | data-analyst-bi-expert | Writes the PRD and slices; read-only data checks | [repo](https://github.com/dimitriskl/data-analyst-bi-expert) |
+| `analyst` | requirements-analyst | Explores the code, asks only what changes the build, writes the PRD and slices; read-only data checks | [repo](https://github.com/dimitriskl/requirements-analyst) |
 | `backend` | csharp-expert-developer | Builds the backend part of each slice (.NET) | [repo](https://github.com/dimitriskl/csharp-expert-developer) |
 | `frontend` | angular-typescript-developer | Builds the frontend part of each slice (Angular) | [repo](https://github.com/dimitriskl/angular-typescript-developer) |
 | `qa` | qa-automation-engineer | Checks every acceptance criterion, read-only; writes its own verdict | [repo](https://github.com/dimitriskl/qa-automation-engineer) |
 | `reviewer` | senior-code-reviewer (v1.1.0+) | Reviews each slice, read-only except its own verdict | [repo](https://github.com/dimitriskl/senior-code-reviewer) |
 
-Also available: [ui-ux-developer](https://github.com/dimitriskl/ui-ux-developer) (an alternative `frontend` focused on UX and accessibility) and [software-architect](https://github.com/dimitriskl/software-architect) (for design questions outside the board).
+Also available: [ui-ux-developer](https://github.com/dimitriskl/ui-ux-developer) (an alternative `frontend` focused on UX and accessibility), [software-architect](https://github.com/dimitriskl/software-architect) (for design questions outside the board) and [data-analyst-bi-expert](https://github.com/dimitriskl/data-analyst-bi-expert) (an alternative `analyst` for data-heavy and BI work).
 
 Each repository's README shows how to install the agent for one project (`.claude/agents/`, `.codex/agents/`) or for all your projects (`~/.claude/agents/`, `~/.codex/agents/`).
 
@@ -155,7 +155,7 @@ Each repository's README shows how to install the agent for one project (`.claud
 ```json
 {
   "agents": {
-    "analyst": { "name": "data-analyst-bi-expert" },
+    "analyst": { "name": "requirements-analyst" },
     "backend": { "name": "csharp-expert-developer" },
     "frontend": { "name": "angular-typescript-developer" },
     "qa": { "name": "qa-automation-engineer" },
@@ -199,6 +199,44 @@ Copy-Item -Recurse .\engineering-judgment-skill\skills\engineering-judgment C:\s
 Use the corresponding destination for your agent. Restart its session, then invoke the skill explicitly. Your existing agent definitions and third-party skills are not replaced.
 
 > **Migrating from the older "Engineering Judgment Coach":** back up/remove the old `engineering-judgment-coach` directory in your agent's skills folder to avoid duplicate or conflicting skill discovery. The new invocation name is `engineering-judgment`.
+
+## Updating the skill
+
+Check [CHANGELOG.md](CHANGELOG.md) first. A new major version (for example 2.x → 3.0.0) can change how the skill works or what `.engineering-workflow.json` contains.
+
+**Installed with `npx skills`** (Node.js 22.20 or later). Run these from the same place you installed it, normally your project folder:
+
+```bash
+npx skills check                          # shows whether an update is available
+npx skills update engineering-judgment    # installs the latest version
+```
+
+**Installed manually.** Get the latest version, then replace the whole skill folder. Delete the old folder first, so files removed in the new version don't stay behind.
+
+macOS / Linux:
+
+```bash
+cd engineering-judgment-skill && git pull && cd ..
+rm -rf YourProject/.agents/skills/engineering-judgment
+cp -R engineering-judgment-skill/skills/engineering-judgment YourProject/.agents/skills/
+```
+
+PowerShell:
+
+```powershell
+git -C .\engineering-judgment-skill pull
+Remove-Item -Recurse -Force C:\src\YourProject\.claude\skills\engineering-judgment
+Copy-Item -Recurse .\engineering-judgment-skill\skills\engineering-judgment C:\src\YourProject\.claude\skills\
+```
+
+Use the same skills folder you installed to (`.agents/skills/`, `.claude/skills/` or `.github/skills/`).
+
+**After updating:**
+
+- Start a new agent session, so the new version is loaded.
+- Compare your project's `.engineering-workflow.json` with the [current default](.engineering-workflow.json) and remove keys the skill no longer reads.
+- Your `prd/` folders are not touched by an update. A new session resumes the board from them.
+- The agents are updated separately. Each agent repository's README explains how (see [Agents](#agents-use-mine-or-map-your-own)).
 
 ## Requirements, trust, and limitations
 

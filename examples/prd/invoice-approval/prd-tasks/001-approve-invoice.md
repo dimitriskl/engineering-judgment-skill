@@ -102,7 +102,7 @@ Criteria with no automated test: none
 
 ## History
 
-- 2026-11-04 | analyst (data-analyst-bi-expert) | created slice | To do
+- 2026-11-04 | analyst (requirements-analyst) | created slice | To do
 - 2026-11-04 | backend (csharp-expert-developer) | implemented part | Developed — 7/7 tests pass
 - 2026-11-04 | frontend (ui-ux-developer) | implemented part | Developed — 5/5 tests pass
 - 2026-11-04 | reviewer (senior-code-reviewer) | review round 1 | FAIL — audit row not in same transaction

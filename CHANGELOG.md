@@ -12,7 +12,7 @@
 - **Human-on-the-loop** made explicit. Teach-back questions now happen only in Drill mode.
 - Validator checks required sections, banned planning-skill names, and teach-back placement. Example PRD folder in `examples/prd/`.
 - Before each agent run the orchestrator records a snapshot and checks the agent stayed in scope; the developer's uncommitted work is never touched. Developers record an `Evidence:` block; blocked slices record `Blocked from:`; change requests are `open` / `done`.
-- The default `.engineering-workflow.json` maps the author's published agents (data-analyst-bi-expert, csharp-expert-developer, angular-typescript-developer, qa-automation-engineer, senior-code-reviewer); the README links each one for download.
+- The default `.engineering-workflow.json` maps the author's published agents (requirements-analyst, csharp-expert-developer, angular-typescript-developer, qa-automation-engineer, senior-code-reviewer); the README links each one for download. The new requirements-analyst agent (derived from software-architect) is the default analyst; data-analyst-bi-expert stays available as an alternative.
 
 ## 2.2.0 — Analyst and QA roles, live agent status (2026-11-04)
 

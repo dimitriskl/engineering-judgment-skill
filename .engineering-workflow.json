@@ -1,6 +1,6 @@
 {
   "agents": {
-    "analyst": { "name": "data-analyst-bi-expert" },
+    "analyst": { "name": "requirements-analyst" },
     "backend": { "name": "csharp-expert-developer" },
     "frontend": { "name": "angular-typescript-developer" },
     "qa": { "name": "qa-automation-engineer" },

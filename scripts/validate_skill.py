@@ -93,6 +93,10 @@ REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["Quest
 REQUIRED["skills/engineering-judgment/references/analyst-playbook.md"] += ["Question n/N"]
 REQUIRED["skills/engineering-judgment/references/training-drills.md"] += ["Question n/N"]
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["Question n/N"]
+REQUIRED["README.md"] += ["## Updating the skill", "npx skills check", "npx skills update engineering-judgment"]
+# The default analyst is requirements-analyst, linked for download.
+REQUIRED[".engineering-workflow.json"] = ['"analyst": { "name": "requirements-analyst" }']
+REQUIRED["README.md"] += ["https://github.com/dimitriskl/requirements-analyst", '"analyst": { "name": "requirements-analyst" }']
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
