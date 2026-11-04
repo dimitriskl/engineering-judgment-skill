@@ -41,7 +41,7 @@ Add two-factor authentication (2FA) to login: after the password, the user enter
 Ask me only what is unclear, then finish with Guide me so I can walk through the changes and sign off.
 ```
 
-**2. Answer the questions**, one at a time (`🟣 analyst (requirements-analyst) · Question 1/4: …`). Reply with your answer, or accept the recommended one:
+**2. Answer the questions**, one at a time (`🟣 analyst [opus, high] (requirements-analyst) · Question 1/4: …`). Reply with your answer, or accept the recommended one:
 
 ```text
 yes, use the recommended answer
@@ -165,7 +165,7 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 
 ### Who is working right now
 
-The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback. Every message also starts with **who is speaking**, and each role has its own color marker, so you never have to guess which agent wrote a paragraph:
+The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback. Every message also starts with **who is speaking**, and each role has its own color marker, so you never have to guess which agent wrote a paragraph. The brackets show the model and effort that run actually used, for example `🟣 analyst [opus, high] (requirements-analyst):`:
 
 | Marker | Role |
 | --- | --- |
@@ -177,17 +177,17 @@ The skill prints a line each time an agent starts or finishes, and says whether 
 | ⚪ orchestrator | the main session: routing, integration, your sign-off |
 
 ```text
-🟣 ▶ Now working: analyst (requirements-analyst) · opus · high · PRD invoice-approval · subagent `analyst_prd` started
-🟣 ✓ Done: analyst (requirements-analyst) · 5 stories, 2 open questions
-🟣 analyst (requirements-analyst): The plan adds one shared protection key, so all API instances can read the stored secrets.
-🟣 analyst (requirements-analyst) · Question 1/2: Should the key survive a restart? Recommended: yes, stored outside the app folder.
-🔵 ▶ Now working: backend (csharp-expert-developer) · sonnet · medium · slice 001 · subagent `backend_s001` started
-🔵 ✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
-🟠 ▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
-⚪ orchestrator: Slice 001 is in review; nothing needs your input yet.
+🟣 ▶ Now working: analyst [opus, high] (requirements-analyst) · PRD invoice-approval · subagent `analyst_prd` started
+🟣 ✓ Done: analyst [opus, high] (requirements-analyst) · 5 stories, 2 open questions
+🟣 analyst [opus, high] (requirements-analyst): The plan adds one shared protection key, so all API instances can read the stored secrets.
+🟣 analyst [opus, high] (requirements-analyst) · Question 1/2: Should the key survive a restart? Recommended: yes, stored outside the app folder.
+🔵 ▶ Now working: backend [sonnet, medium] (csharp-expert-developer) · slice 001 · subagent `backend_s001` started
+🔵 ✓ Done: backend [sonnet, medium] (csharp-expert-developer) · 3 files, dotnet test PASS
+🟠 ▶ Now working: reviewer [session] (main agent) · review · FALLBACK, not independent
+⚪ orchestrator [sonnet, medium]: Slice 001 is in review; nothing needs your input yet.
 ```
 
-The markers are plain emoji, so they show the same in Claude Code and Codex CLI. Each subagent run gets a readable name (`<role>_<slice>`). When Codex prints its own line, such as "Interacted with `/root/backend_s001`", the line just before it (`🔵 ▶ Now working: backend (csharp-expert-developer) · slice 001 · subagent `backend_s001` started`) tells you which agent that is. Lines the host tool prints itself (such as "Waiting for agents") come from the tool, not the skill, and have no marker.
+The markers are plain emoji, so they show the same in Claude Code and Codex CLI. Each subagent run gets a readable name (`<role>_<slice>`). When Codex prints its own line, such as "Interacted with `/root/backend_s001`", the line just before it (`🔵 ▶ Now working: backend [sonnet, medium] (csharp-expert-developer) · slice 001 · subagent `backend_s001` started`) tells you which agent that is. Lines the host tool prints itself (such as "Waiting for agents") come from the tool, not the skill, and have no marker.
 
 ### What the handoff looks like
 

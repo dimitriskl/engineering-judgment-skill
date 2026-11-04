@@ -41,14 +41,14 @@ Before announcing a route:
 
 **Live agent status.** Print one line immediately before every agent run and one when it returns, so the developer always sees who is working:
 
-- `<color> ▶ Now working: <role> (<agent name>) · <model> · <effort> · <phase or slice> · subagent `<run name>` started | FALLBACK, not independent`
-- `<color> ✓ Done: <role> (<agent name>) · <one-line result with evidence>` or `<color> ✗ Failed: <role> (<agent name>) · <reason>`
+- `<color> ▶ Now working: <role> [<model>, <effort>] (<agent name>) · <phase or slice> · subagent `<run name>` started | FALLBACK, not independent`
+- `<color> ✓ Done: <role> [<model>, <effort>] (<agent name>) · <one-line result with evidence>` or `<color> ✗ Failed: <role> [<model>, <effort>] (<agent name>) · <reason>`
 
 Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` for your own integration and verification work. Write `subagent … started` only if a separate agent was actually invoked. Name every run `<role>_<slice or phase>` (for example `backend_s001`, `analyst_prd`) when the host lets you name it, so the host's own lines (Codex: `Interacted with /root/backend_s001`) match your `▶` line and the developer knows a subagent is working. In parallel runs, print one `▶` line per agent. Never print a `✓` line for work that did not run.
 
 **Lean orchestrator.** Your context lasts the whole run, so spend it on decisions, not on code. Read the board (PRD header, slice headers, statuses, verdicts, `Evidence:` blocks), `git status` and `git diff --name-only`, and run the gate commands yourself; never read source files or run code searches that an agent can do. Ask every agent for a report of at most 10 lines; the details belong in the slice file. Relay one short line per agent result, never its full output. **Every agent, you included, auto-compacts at 40%** context used while its job is still running; a **fresh agent** starts only for the next job. Save the board at every checkpoint, check once that auto-compact at 40% is configured, and after any compaction rebuild the board from the files (`references/kanban-protocol.md`, "Context checkpoints").
 
-**Every chat message names its speaker.** Each role has one color marker: 🟣 analyst · 🔵 backend · 🟢 frontend · 🟠 reviewer · 🟡 qa · ⚪ orchestrator. Start every paragraph that relays or summarizes an agent's output with `<color> <role> (<agent name>):`, for example `🟣 analyst (requirements-analyst): The plan adds one shared protection key…`. Start your own commentary with `⚪ orchestrator:`. Never print agent text without its speaker, and never mix two agents in one paragraph.
+**Every chat message names its speaker.** Each role has one color marker: 🟣 analyst · 🔵 backend · 🟢 frontend · 🟠 reviewer · 🟡 qa · ⚪ orchestrator. Start every paragraph that relays or summarizes an agent's output with `<color> <role> [<model>, <effort>] (<agent name>):`, for example `🟣 analyst [opus, high] (requirements-analyst): The plan adds one shared protection key…`. `[<model>, <effort>]` is what that run actually used; write `session` for a value that came from the session and you can't name. Start your own commentary with `⚪ orchestrator [<your model>, <your effort>]:`, or `⚪ orchestrator:` if you don't know them. Never print agent text without its speaker, and never mix two agents in one paragraph.
 
 ## Select mode and required depth
 

@@ -99,9 +99,9 @@ REQUIRED[".engineering-workflow.json"] = ['"name": "requirements-analyst"']
 REQUIRED["README.md"] += ["https://github.com/dimitriskl/requirements-analyst", '"name": "requirements-analyst"']
 # Chat text names its speaker, with one color marker per role.
 ROLE_COLORS = ["🟣 analyst", "🔵 backend", "🟢 frontend", "🟠 reviewer", "🟡 qa", "⚪ orchestrator"]
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ROLE_COLORS + ["<role> (<agent name>):"]
-REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["<role> (<agent name>) · Question n/N"]
-REQUIRED["README.md"] += ROLE_COLORS + ["🟣 analyst (requirements-analyst):"]
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ROLE_COLORS + ["<role> [<model>, <effort>] (<agent name>):"]
+REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["<role> [<model>, <effort>] (<agent name>) · Question n/N"]
+REQUIRED["README.md"] += ROLE_COLORS + ["🟣 analyst [opus, high] (requirements-analyst):"]
 # Lean orchestrator: board-only reads, short agent reports.
 # Every agent auto-compacts at 40% context used while its job runs; a fresh agent starts only for a new job.
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["**Lean orchestrator.**", "40%", "Context checkpoints", "auto-compact"]
@@ -122,7 +122,7 @@ REQUIRED["README.md"] += ["VerifyCode_WrongCode_Returns401", "**`tests`**"]
 # Per-role model and effort, one value per host; the orchestrator detects the host.
 REQUIRED["skills/engineering-judgment/SKILL.md"] += [
     "model.claude", "effort.codex", "host: Claude Code | Codex", "CLAUDECODE",
-    "`reviewer: opus high`", "asks once", "<model> · <effort>",
+    "`reviewer: opus high`", "asks once", "▶ Now working: <role> [<model>, <effort>]",
 ]
 REQUIRED["README.md"] += ['"claude": "opus"', '"codex": "gpt-6.1-sol"', '"codex": "gpt-6.1-terra"', "`reviewer: opus high`"]
 # The example PRD folder must follow the templates.
