@@ -1,0 +1,28 @@
+name: Bug report
+description: Report a reproducible workflow failure
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What went wrong?
+      description: Describe expected and observed behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Include anonymized prompts, files, agent/client, and what happened. Never include secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and impact
+      description: Logs, tests, or screenshot descriptions (redact private data).
+  - type: input
+    id: version
+    attributes:
+      label: Skill version / commit

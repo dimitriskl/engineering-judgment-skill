@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose an improvement with a concrete use case
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: gap
+    attributes:
+      label: What engineering judgment gap does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior and desired behavior
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Reproducible example or evidence
