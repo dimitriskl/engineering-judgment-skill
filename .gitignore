@@ -1,5 +1,4 @@
-# Local, user-specific orchestration config and installation backups
-.engineering-workflow.json
+# Installation backups
 .engineering-judgment-backups/
 # Common editor/tool artifacts
 .DS_Store

@@ -28,7 +28,7 @@ else:
             errors.append(f"Broken skill reference: {ref}")
     if len(body.splitlines()) > 500:
         errors.append("SKILL.md too long; move detail into references")
-for p in ("README.md", "LICENSE", "CONTRIBUTING.md", "config.example.json"):
+for p in ("README.md", "LICENSE", "CONTRIBUTING.md", ".engineering-workflow.json"):
     if not (root / p).is_file():
         errors.append(f"Missing {p}")
 if errors:

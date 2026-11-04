@@ -50,7 +50,8 @@ The CLI and agent availability vary by environment. **Installation does not guar
 flowchart TD
   A[Your request + repository] --> B{Risk and scope?}
   B -->|Small fix| C[Short intent + focused task]
-  B -->|Complex feature| D[Existing interview / PRD / task skills, if installed]
+  B -->|Complex feature| A2[Analyst agent: stories, acceptance criteria, edge cases]
+  A2 --> D[Existing interview / PRD / task skills, if installed]
   C --> E[Existing specialist agent or main coding agent]
   D --> E
   E --> F[Build + tests + observable verification]
@@ -71,6 +72,18 @@ The tool should discover and reuse what your repo already has rather than genera
 | **Audit** | Existing PR/diff | `Use engineering-judgment in Audit mode on my branch. What do passing tests miss?` |
 | **Drill** | Improve your own engineering judgment | `Use engineering-judgment in Drill mode. Ask one question at a time about a real design decision.` |
 
+### Who is working right now
+
+The skill prints a line each time an agent starts or finishes, and says whether a separate agent really ran or the main agent did the work as a fallback:
+
+```text
+▶ Now working: analyst (data-analyst-expert) · Phase 1 requirements · dispatched
+✓ Done: analyst (data-analyst-expert) · 5 stories, 2 open questions
+▶ Now working: backend (csharp-expert-developer) · Slice S1 · dispatched
+✓ Done: backend (csharp-expert-developer) · 3 files, dotnet test PASS
+▶ Now working: reviewer (main agent) · review · FALLBACK, not independent
+```
+
 ### What the handoff looks like
 
 ```text
@@ -88,24 +101,19 @@ Example output only, not a test result from your project.
 
 ## Existing workflow? Keep it.
 
-If your repository already has a **C# agent**, **Angular agent**, **code reviewer**, and planning skills such as Matt Pocock's `grill-with-docs → to-prd → to-tasks/to-issues`, the skill can route work through them **when the host supports invoking them**.
+If your repository already has an **analyst agent**, **C# agent**, **Angular agent**, **code reviewer**, and planning skills such as Matt Pocock's `grill-with-docs → to-prd → to-tasks/to-issues`, the skill can route work through them **when the host supports invoking them**.
 
-It checks for existing PRDs/tasks first, delegates code to the appropriate existing agents, reviews changed source and actual test output, and helps you keep responsibility for consequential decisions.
+It checks for existing PRDs/tasks first, asks the analyst for requirements (and for data checks when reports, queries, or metrics change), delegates code to the appropriate existing agents, reviews changed source and actual test output, and helps you keep responsibility for consequential decisions.
 
-For *any* technology stack, map your own agent names in an optional `.engineering-workflow.json` placed in the **root of your project repository** (the repo you work in, not this skill's folder). Copy [config.example.json](config.example.json) there and rename it:
+For *any* technology stack, map your own agent names in an optional `.engineering-workflow.json` placed in the **root of your project repository** (the repo you work in, not this skill's folder). Copy [.engineering-workflow.json](.engineering-workflow.json) there and replace the names with your own:
 
 ```json
 {
-  "version": 2,
   "agents": {
+    "analyst": { "name": "my-analyst-agent" },
     "backend": { "name": "my-backend-agent" },
     "frontend": { "name": "my-frontend-agent" },
     "reviewer": { "name": "my-code-reviewer" }
-  },
-  "skills": {
-    "requirements": ["grill-with-docs", "grillme-with-docs"],
-    "prd": ["to-prd"],
-    "tasks": ["to-tasks", "to-issues"]
   }
 }
 ```

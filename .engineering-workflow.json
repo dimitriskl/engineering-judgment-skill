@@ -1,46 +1,8 @@
 {
-  "version": 2,
   "agents": {
-    "backend": {
-      "name": null,
-      "search_terms": [
-        "backend",
-        "dotnet",
-        "java",
-        "python",
-        "server"
-      ]
-    },
-    "frontend": {
-      "name": null,
-      "search_terms": [
-        "angular",
-        "react",
-        "frontend",
-        "ui"
-      ]
-    },
-    "reviewer": {
-      "name": null,
-      "search_terms": [
-        "code-review",
-        "reviewer",
-        "review"
-      ]
-    }
-  },
-  "skills": {
-    "requirements": [
-      "grill-with-docs",
-      "grillme-with-docs"
-    ],
-    "prd": [
-      "to-prd"
-    ],
-    "tasks": [
-      "to-tasks",
-      "to-issues",
-      "to-tickets"
-    ]
+    "analyst": { "name": "my-analyst-agent" },
+    "backend": { "name": "my-backend-agent" },
+    "frontend": { "name": "my-frontend-agent" },
+    "reviewer": { "name": "my-code-reviewer" }
   }
 }

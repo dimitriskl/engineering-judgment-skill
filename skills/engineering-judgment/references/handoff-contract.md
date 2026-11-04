@@ -1,5 +1,14 @@
 # Agent delegation, review, and handoff contracts
 
+## Analyst request
+
+The analyst is read-only. Give it the request, settled human answers, domain docs, and relevant code paths — not a pre-written solution.
+
+- **Requirements analysis (before PRD):** return user stories, acceptance criteria as observable checks, edge and failure cases, open questions the human must decide, and a proposed slice breakdown.
+- **Data analysis (data/report/metric changes):** return metric definitions vs. the requirement, expected vs. actual results on known sample data, aggregation/rounding/time-zone/null findings, and row counts before/after migrations, with the exact queries or commands run and their output.
+
+Never let the analyst write production code or run writes against shared or production data. Its output informs human decisions; it does not make them.
+
 ## Implementation specialist request
 
 Provide only a bounded, testable slice:
