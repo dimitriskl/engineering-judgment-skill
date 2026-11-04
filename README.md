@@ -340,12 +340,15 @@ Use the corresponding destination for your agent. Restart its session, then invo
 
 Check [CHANGELOG.md](CHANGELOG.md) first. A new major version (for example 2.x → 3.0.0) can change how the skill works or what `.engineering-workflow.json` contains.
 
-**Installed with `npx skills`** (Node.js 22.20 or later). Run these from the same place you installed it, normally your project folder:
+**Installed with `npx skills`** (Node.js 22.20 or later):
 
 ```bash
 npx skills check                          # shows whether an update is available
-npx skills update engineering-judgment    # installs the latest version
+npx skills update engineering-judgment    # updates a project install (run it in your project folder)
+npx skills update -g                      # updates global installs (e.g. ~/.agents/skills)
 ```
+
+Run in a project folder, `update` may update only that project's skills. If you installed the skill globally (with `-g`), use `npx skills update -g`. A session that is already running keeps the old instructions, so start a new one after updating.
 
 **Installed manually.** Get the latest version, then replace the whole skill folder. Delete the old folder first, so files removed in the new version don't stay behind.
 

@@ -134,6 +134,12 @@ for scope in ("skills", "README.md", "examples"):
         for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
             if _old_name.search(line) and "formerly" not in line:
                 errors.append(f"{f.relative_to(root).as_posix()}:{n} uses the old name Guide me")
+# Brackets are mandatory, also for the orchestrator; global installs update with -g.
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ["Never omit the brackets", "⚪ orchestrator [session]:"]
+REQUIRED["README.md"] += ["npx skills update -g"]
+_skill_text = (root / "skills/engineering-judgment/SKILL.md").read_text(encoding="utf-8")
+if "`⚪ orchestrator:` if you don't know" in _skill_text:
+    errors.append("SKILL.md still allows an orchestrator label without brackets")
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
