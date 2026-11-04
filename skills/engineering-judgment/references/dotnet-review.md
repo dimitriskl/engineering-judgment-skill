@@ -24,4 +24,4 @@ dotnet test YourSolution.sln
 
 Record exact commands, exit status, test totals, and **what is not exercised**. A passing in-memory persistence test does not prove production database behavior.
 
-**Teach-back examples:** "What happens if the ERP call succeeds but the acknowledgement times out?" "Why is authorization in a UI guard insufficient?" "Which transaction invariant changes if this call moves outside the scope?"
+**Drill-mode question examples (only when the developer chose Drill):** "What happens if the ERP call succeeds but the acknowledgement times out?" "Why is authorization in a UI guard insufficient?" "Which transaction invariant changes if this call moves outside the scope?"

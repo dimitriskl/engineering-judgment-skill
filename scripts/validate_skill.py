@@ -69,6 +69,11 @@ REQUIRED = {
         "references/analyst-playbook.md", "references/guide-me.md", "templates/prd.md",
         "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
     ],
+    "skills/engineering-judgment/references/handoff-contract.md": [
+        "slice file", "git diff --name-only", "recorded by orchestrator",
+    ],
+    "skills/engineering-judgment/references/orchestration-matrix.md": ["Guide me", "prd/"],
+    "skills/engineering-judgment/references/training-drills.md": ["teach-back"],
 }
 for rel, phrases in REQUIRED.items():
     path = root / rel
@@ -87,6 +92,12 @@ if skill_md.is_file():
     for n, line in enumerate(skill_md.read_text(encoding="utf-8").splitlines(), 1):
         if re.search(r"teach-back", line, re.I) and "Drill" not in line:
             errors.append(f"SKILL.md:{n} mentions teach-back outside Drill")
+# Elsewhere in the skill, only training-drills.md may talk about teach-back questions.
+for f in sorted(skill_dir.rglob("*.md")):
+    if f.name in ("SKILL.md", "training-drills.md"):
+        continue
+    if re.search(r"teach-back|one question at handoff|learning question", f.read_text(encoding="utf-8"), re.I):
+        errors.append(f"{f.relative_to(root).as_posix()} mentions teach-back outside Drill")
 
 # The skill is self-contained: external planning skills must not be referenced.
 BANNED = ["grill-with-docs", "grillme-with-docs", "to-prd", "to-tasks", "to-issues", "to-tickets"]

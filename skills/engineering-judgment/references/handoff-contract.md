@@ -1,54 +1,58 @@
 # Agent delegation, review, and handoff contracts
 
+Every request goes to a **fresh agent** and is self-contained: it names the role, the PRD and slice file paths, the files the agent may change, and what to return. Exact prompt skeletons and the transition rules are in `kanban-protocol.md`. In Fix and Audit modes (no `prd/`), use the same contracts with a task card instead of a slice file.
+
 ## Analyst request
 
-The analyst is read-only. Give it the request, settled human answers, domain docs, and relevant code paths — not a pre-written solution.
+Give it the request, the developer's answers so far, domain docs, and relevant code paths, not a pre-written solution. It follows `analyst-playbook.md`.
 
-- **Requirements analysis (before PRD):** return user stories, acceptance criteria as observable checks, edge and failure cases, open questions the human must decide, and a proposed slice breakdown.
-- **Data analysis (data/report/metric changes):** return metric definitions vs. the requirement, expected vs. actual results on known sample data, aggregation/rounding/time-zone/null findings, and row counts before/after migrations, with the exact queries or commands run and their output.
-
-Never let the analyst write production code or run writes against shared or production data. Its output informs human decisions; it does not make them.
+- **Writes:** the PRD file, the slice files, `CONTEXT.md` and ADRs. Never production code or tests.
+- **Returns:** the files written, and open questions, each with a recommended answer. It never asks the developer directly.
+- **Data check** (data/report/metric slices): metric definitions vs. the requirement, expected vs. actual results on known sample data, aggregation/rounding/time-zone/null findings, row counts before and after migrations, with the exact queries and their output, written into the slice file's QA notes. Never writes to shared or production data.
 
 ## Implementation specialist request
 
-Provide only a bounded, testable slice:
+One part of one slice:
 
-- **Role and slice ID:** precise owner and task reference.
-- **Source evidence:** code paths, domain documents, prior failing test.
-- **Owned files:** avoid overlapping parallel writes unless safely isolated.
-- **Contract:** accepted input/output, errors, auth, compatibility and invariants.
-- **Proof required:** actual commands, expected observable behavior and important negative case.
-- **Risks/time:** risk level, deadline and verification reserve.
-- **Return:** changed files, assumptions/choices, commands+output+exit status, known untested scenarios.
+- **Role and slice:** `backend` or `frontend`, and the slice file path.
+- **Contract:** from the slice file. Build against it and never change it silently; raise a question instead.
+- **Owned files:** only the part's Owned files and their tests.
+- **Proof required:** the part's test commands and the slice's acceptance criteria, including the negative case.
+- **Notes to act on:** Review notes, QA notes and Change requests addressed to this part.
+- **Updates:** its own `Part status` (`Developing` → `Developed` only after its tests passed) and one History line.
+- **Returns:** changed files, assumptions, commands + output + exit code, known untested scenarios, questions.
 
-Do not silently commit/push/merge/deploy or overwrite unrelated changes.
-
-## QA request
-
-QA is read-only: it runs checks and reports, and writes no code (neither tests nor fixes). Give it the acceptance criteria, changed files, and the exact build/test/run commands.
-
-- **Run:** existing build and test suites, then exercise the running feature against each acceptance criterion — happy path, edge cases, failure paths, and loading/empty/error states for UI.
-- **Return:** `criterion | how checked | PASS / FAIL / NOT RUN | evidence`, defects with reproduction steps, and acceptance criteria with no automated test.
-
-Defects and missing tests go back to the owning developer. After fixes, QA re-runs the affected criteria.
+Do not commit, push, merge, deploy, or overwrite unrelated changes.
 
 ## Independent reviewer request
 
-Give the reviewer **original changed files**, baseline requirements and actual command outputs, **not only** the implementation agent's summary. Require:
+Give the reviewer the diff range, the **original changed files**, the slice file (Contract, acceptance criteria) and the PRD, not a developer's summary.
 
-1. Findings in severity order: `severity | file:line | failure mode | evidence | reproduction`.
-2. Important implicit assumptions, hidden defaults and scope changes.
-3. What passing tests **do** and **do not** establish.
-4. What is still needed for human approval.
+- **Writes its own verdict into the slice file**: PASS or FAIL per part, then findings in severity order (`severity | file:line | failure scenario | evidence | what must be done`), implicit assumptions and scope changes, and what the passing tests do and do **not** establish. Also one History line.
+- **Never** edits source code, tests, or any file other than the slice file.
 
-Reviewer is read-only. If the host cannot invoke another agent, say so and label main-agent self-review as **not independent**.
+## QA request
+
+Give QA the slice file, the changed files, and the exact build/test/run commands.
+
+- **Runs** the existing build and test suites, then exercises the running feature against each acceptance criterion: happy path, edge cases, failure paths, and loading/empty/error states for UI.
+- **Writes its own verdict into the slice file**: PASS or FAIL, the table `criterion | how checked | PASS / FAIL / NOT RUN | evidence`, defects with reproduction steps, criteria with no automated test, and one History line.
+- **Never** writes code: no tests and no fixes. Defects and missing tests go back to the owning developer, and QA re-runs the affected criteria after the fixes.
+
+## Enforcing write scope
+
+After every agent run, the orchestrator checks `git diff --name-only` (plus untracked files) against what that role may write. Out-of-scope changes are reverted, logged in History as a violation, and the step is re-run with a fresh agent. If a mapped reviewer or QA agent can't write files at all, the orchestrator writes its returned verdict verbatim, labelled `Verdict by <agent>, recorded by orchestrator`.
+
+If the host cannot invoke a separate agent, the orchestrator does the step itself and labels it `FALLBACK, not independent`.
 
 ## Integration owner
 
-The coordinator verifies shared API/contracts, overlapping edits, build/test impact and relevant user journeys. Parallel writing is safe only with isolated worktrees or clearly non-overlapping ownership. A reviewer finding returns to the implementation owner for fixes.
+The orchestrator merges `Completed` slices and verifies shared API contracts, overlapping edits, build/test impact and user journeys on the combined code. Parallel writing is safe only in separate worktrees, or with clearly non-overlapping Owned files. Every finding returns to the owning developer for fixes.
 
 ## Final status
 
-- `READY FOR HUMAN REVIEW`: an evidenced review candidate, **not** deployment approval.
-- `BLOCKED`: unresolved consequential decision or failure.
-- `NOT VERIFIED`: code exists but required evidence is missing.
+- `SIGNED OFF (ACCEPT)`: every slice Completed, integrated, and accepted by the developer after Guide me. Still **not** deployment approval.
+- `REJECTED`: the developer rejected the sign-off; the reason is recorded in the PRD.
+- `BLOCKED`: an unresolved question, or a slice that hit the retry cap.
+- `NOT VERIFIED`: code exists but the required evidence is missing.
+- In Fix and Audit modes, `READY FOR HUMAN REVIEW` means an evidenced candidate for the developer's review.

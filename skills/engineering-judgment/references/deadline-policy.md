@@ -16,4 +16,6 @@ Numbers are rough planning defaults, **not stopwatch guarantees**. If clock/time
 
 **Escalate:** if the change cannot meet the risk-appropriate evidence threshold, mark it `NOT VERIFIED`. Narrow scope, place behind a feature flag where appropriate, or ask for the decision. Never call green CI proof of safety.
 
-**Finish:** `Outcome | observed checks | strongest blind spot | deferred work | human decision`. Optional teach-back only at handoff, never during the critical execution window.
+**Finish:** `Outcome | observed checks | strongest blind spot | deferred work | human decision`. No quiz questions; drills happen only in Drill mode.
+
+**Full feature under Deadline:** every slice still gets review and QA, but with **one fix round only**; anything unresolved is flagged in the handoff.

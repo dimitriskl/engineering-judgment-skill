@@ -1,6 +1,6 @@
 # Optional critical-thinking drills using real code
 
-These are **opt-in**, except a single non-blocking teach-back question at an L1/L2 handoff. Use actual changed source and evidence, never a generic trivia quiz.
+These are **opt-in and used only in Drill mode** — teach-back and check questions never appear in other modes, handoffs or the Guide me sign-off. Use actual changed source and evidence, never a generic trivia quiz.
 
 ## A. Hypothesis before answer (5–10 minutes)
 
@@ -24,4 +24,4 @@ Ask for a concise explanation: problem, proposed design, rejected alternative, i
 
 **Feedback:** `Sound reasoning | Missing evidence | Next practice`. In Drill mode ask **one question at a time**, await the person's answer, and do not leak the solution before the attempt.
 
-After a deadline task, postpone optional drills until the handoff. The skill is primarily a delivery orchestrator, not a compulsory teacher.
+The skill is primarily a delivery orchestrator, not a compulsory teacher. After any task, the developer can start a drill on it with `Use engineering-judgment in Drill mode`.
