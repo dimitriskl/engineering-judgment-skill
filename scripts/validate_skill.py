@@ -46,6 +46,13 @@ REQUIRED = {
         "Part status:", "## Acceptance criteria", "## Questions & answers",
         "## Review notes", "## QA notes", "## Change requests", "## History",
     ],
+    "skills/engineering-judgment/references/kanban-protocol.md": [
+        "## Folder layout", "## Statuses", "## Transition table", "## Who writes what",
+        "## Fresh agent prompts", "## Questions", "## Retry cap", "## Branches and commits",
+        "## Parallel worktrees", "## After merge", "## Resume", "## Verdict enforcement",
+        "Blocked: needs clarification", "git worktree list", "git diff --name-only",
+        "uncommitted", "feature/<prd-name>", "not in the transition table",
+    ],
 }
 for rel, phrases in REQUIRED.items():
     path = root / rel
