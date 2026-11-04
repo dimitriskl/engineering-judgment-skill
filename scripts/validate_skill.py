@@ -61,7 +61,7 @@ REQUIRED = {
         "## Data checks", "read-only",
     ],
     "skills/engineering-judgment/references/guide-me.md": [
-        "## Step list", "execution-flow order", "## Step card", "What:", "Why:", "Proof:",
+        "## Step list", "execution-flow order", "## Step card", "What:", "Why:", "Tests:",
         "## Commands", "next", "back", "go N", "ask", "change", "approve all",
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
@@ -116,6 +116,9 @@ REQUIRED["README.md"] += [
 # The user sees in plain words that a subagent started, under a readable run name.
 REQUIRED["skills/engineering-judgment/SKILL.md"] += ["subagent `<run name>` started", "<role>_<slice or phase>"]
 REQUIRED["README.md"] += ["Interacted with `/root/backend_s001`", "subagent `backend_s001` started"]
+# Every Guide me step card lists the tests written for that step, and `tests` shows their code.
+REQUIRED["skills/engineering-judgment/references/guide-me.md"] += ["Tests:", "new | changed | existing", "`tests`", "none written"]
+REQUIRED["README.md"] += ["VerifyCode_WrongCode_Returns401", "**`tests`**"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]

@@ -32,21 +32,26 @@ Below the list, show **one** step:
 Step 3/9 · src/Invoices/ApproveInvoiceHandler.cs:42-51
   What:  Rejects the request if status ≠ Pending (409 Conflict).
   Why:   Stops double approval — acceptance criterion 003-2.
-  Proof: test ApproveTwice_Returns409 — PASS
+  Tests: 2 for this step
+    ✓ tests/Invoices/ApproveInvoiceTests.cs:31 · ApproveTwice_Returns409
+        approving an already approved invoice returns 409 · PASS · new
+    ✓ tests/Invoices/ApproveInvoiceTests.cs:52 · Approve_Pending_SetsApproved
+        a pending invoice becomes Approved · PASS · new
 ──────────────────────────────────────────────────────────
- next · back · go 7 · ask … · change … · approve all
+ next · back · go 7 · tests · ask … · change … · approve all
 ```
 
 - **Location:** `file:line-range` of the real code. Show the key lines if they help, but keep it short.
 - **What:** what the code does, in plain words.
 - **Why:** the slice and acceptance criterion or invariant it serves.
-- **Proof:** the test or command that proves it, and its recorded result. If nothing proves it, say `Proof: none — not verified`.
+- **Tests:** every test that covers this step, one entry each: `<file:line> · <test name>`, then `<what it checks, in plain words> · PASS | FAIL | NOT RUN · new | changed | existing`. `new` and `changed` come from the diff; results come from the parts' `Evidence:` blocks and the QA notes, never from memory. Mark each entry `✓` (PASS), `✗` (FAIL) or `?` (NOT RUN). If a step has no test, show `Tests: none written — not verified`; it also goes into the blind spots at sign-off.
 
 ## Commands
 
 Wait for the developer after every card.
 
 - `next` / `back` / `go N` — move the pointer and show that card. A step you leave is marked `✓`.
+- `tests` — show the key lines of each test for the current step (arrange, act, assert), then stay on it.
 - `ask …` — answer about the current step from the code and evidence, then stay on it.
 - `change …` — record in that step's slice file under `Change requests`: `Change request by <git user.name> · <date> · file:line · <what to do differently> · open`. The orchestrator changes `· open` to `· done (<commit sha>)` when that slice reaches `Completed` again. Mark the step `✎` and continue the walk. Do **not** dispatch anything yet.
 - `approve all` — skip the remaining steps and go to the summary. The sign-off records `approved without viewing steps N–M`. This is honest, not a penalty.

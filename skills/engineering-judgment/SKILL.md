@@ -109,7 +109,7 @@ Merge each `Completed` slice into `feature/<prd-name>`, then run the build, test
 
 ## Phase 7: Developer sign-off
 
-When every slice is `Completed` and integrated, run **Guide me** (`references/guide-me.md`): a numbered step list of the major changes in execution-flow order, one step card at a time (`file:line`, What, Why, Proof), with `next`, `back`, `go N`, `ask`, `change` and `approve all`. Change requests are recorded in the slice files and send those slices back through development → review → QA. Then record the developer's ACCEPT or REJECT in the PRD's **Developer sign-off** (`Signed: <git user.name> · <date> · commit <sha>`) and commit it. For L2 slices, do the same per slice. No quiz questions here.
+When every slice is `Completed` and integrated, run **Guide me** (`references/guide-me.md`): a numbered step list of the major changes in execution-flow order, one step card at a time (`file:line`, What, Why, and the Tests written for that step with their results), with `next`, `back`, `go N`, `tests`, `ask`, `change` and `approve all`. Change requests are recorded in the slice files and send those slices back through development → review → QA. Then record the developer's ACCEPT or REJECT in the PRD's **Developer sign-off** (`Signed: <git user.name> · <date> · commit <sha>`) and commit it. For L2 slices, do the same per slice. No quiz questions here.
 
 ## Phase 8: Handoff
 
