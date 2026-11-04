@@ -53,6 +53,12 @@ REQUIRED = {
         "Blocked: needs clarification", "git worktree list", "git diff --name-only",
         "uncommitted", "feature/<prd-name>", "not in the transition table",
     ],
+    "skills/engineering-judgment/references/analyst-playbook.md": [
+        "## Explore before asking", "CONTEXT.md", "CONTEXT-MAP.md", "docs/adr/",
+        "## Questions", "recommended answer", "## Writing the PRD", "## Slicing",
+        "vertical slice", "## Contract first", "exact files", "## Existing plans",
+        "## Data checks", "read-only",
+    ],
 }
 for rel, phrases in REQUIRED.items():
     path = root / rel
