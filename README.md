@@ -185,7 +185,7 @@ Example (macOS/Linux):
 ```bash
 git clone https://github.com/dimitriskl/engineering-judgment-skill.git
 mkdir -p YourProject/.agents/skills
-cp -R Engineering-judgment-skill/skills/engineering-judgment YourProject/.agents/skills/
+cp -R engineering-judgment-skill/skills/engineering-judgment YourProject/.agents/skills/
 ```
 
 Example (PowerShell):
@@ -193,7 +193,7 @@ Example (PowerShell):
 ```powershell
 git clone https://github.com/dimitriskl/engineering-judgment-skill.git
 New-Item -ItemType Directory -Force C:\src\YourProject\.claude\skills | Out-Null
-Copy-Item -Recurse .\Engineering-judgment-skill\skills\engineering-judgment C:\src\YourProject\.claude\skills\
+Copy-Item -Recurse .\engineering-judgment-skill\skills\engineering-judgment C:\src\YourProject\.claude\skills\
 ```
 
 Use the corresponding destination for your agent. Restart its session, then invoke the skill explicitly. Your existing agent definitions and third-party skills are not replaced.
