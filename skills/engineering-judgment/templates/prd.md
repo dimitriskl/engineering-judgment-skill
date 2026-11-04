@@ -3,6 +3,7 @@
 <!-- Saved as prd/<prd-name>/<prd-name>.md in the project root. Written by the analyst; use the project's CONTEXT.md vocabulary. -->
 
 PRD: <prd-name> · Created: YYYY-MM-DD · Analyst: <agent name or "main agent (fallback)">
+Branch: feature/<prd-name> · Base: <branch>@<sha>
 
 ## Problem Statement
 
@@ -46,9 +47,9 @@ PRD: <prd-name> · Created: YYYY-MM-DD · Analyst: <agent name or "main agent (f
 
 <!-- Only questions that are unclear and change what gets built. The orchestrator asks the developer in chat and records the answer here. -->
 
-| # | Question | Recommended answer | Developer answer | Date |
-| --- | --- | --- | --- | --- |
-| 1 |  |  |  |  |
+| # | Question | Recommended answer | Developer answer | Blocks | Date |
+| --- | --- | --- | --- | --- | --- |
+| 1 |  |  |  |  |  |
 
 ## Slices
 
@@ -60,14 +61,14 @@ PRD: <prd-name> · Created: YYYY-MM-DD · Analyst: <agent name or "main agent (f
 
 ## Developer sign-off
 
-<!-- Filled in by the orchestrator at the end, from the developer's Guide me session and decision. Never filled in by an agent on its own. -->
+<!-- Filled in by the orchestrator only when every slice is Completed, from the developer's Guide me session and decision. Never filled in by an agent on its own. A later sign-off is appended as a new block; the latest block is the decision. Until then write: Not signed yet. -->
 
 - Shipped: <n>/<n> slices Completed (links)
 - Steps viewed: <list or "approved without viewing steps N–M">
 - Change requests: <links or none>
 - Not proved (blind spots): …
 - Decision: ACCEPT | REJECT — reason: …
-- Signed: <git user.name> · <date> · commit <sha>
+- Signed: <git user.name> · <date> · reviewed commit <sha>
 
 ## Further Notes
 

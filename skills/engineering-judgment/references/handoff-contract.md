@@ -19,7 +19,7 @@ One part of one slice:
 - **Owned files:** only the part's Owned files and their tests.
 - **Proof required:** the part's test commands and the slice's acceptance criteria, including the negative case.
 - **Notes to act on:** Review notes, QA notes and Change requests addressed to this part.
-- **Updates:** its own `Part status` (`Developing` → `Developed` only after its tests passed) and one History line.
+- **Updates:** its own `Part status` (`Developing` → `Developed` only after its tests passed), its part's `Evidence:` block (`command | exit code | key output`), and one History line. Needs a file outside Owned files → return a question, don't edit it.
 - **Returns:** changed files, assumptions, commands + output + exit code, known untested scenarios, questions.
 
 Do not commit, push, merge, deploy, or overwrite unrelated changes.
@@ -41,7 +41,7 @@ Give QA the slice file, the changed files, and the exact build/test/run commands
 
 ## Enforcing write scope
 
-After every agent run, the orchestrator checks `git diff --name-only` (plus untracked files) against what that role may write. Out-of-scope changes are reverted, logged in History as a violation, and the step is re-run with a fresh agent. If a mapped reviewer or QA agent can't write files at all, the orchestrator writes its returned verdict verbatim, labelled `Verdict by <agent>, recorded by orchestrator`.
+Before every agent run, the orchestrator records HEAD and `git status --porcelain`; afterwards it checks `git diff --name-only <base sha>` plus new untracked files against what that role may write, and never touches paths that were already dirty before the run. Out-of-scope changes are reverted, logged in History as a violation, and the step gets one corrective re-run with a fresh agent; a second violation blocks the slice and asks the developer. If a mapped reviewer or QA agent can't write files at all, the orchestrator writes its returned verdict verbatim, labelled `Verdict by <agent>, recorded by orchestrator`.
 
 If the host cannot invoke a separate agent, the orchestrator does the step itself and labels it `FALLBACK, not independent`.
 

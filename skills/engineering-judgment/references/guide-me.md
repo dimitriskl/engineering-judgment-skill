@@ -9,7 +9,7 @@ Guide me never quizzes the developer. Check questions belong only to Drill mode.
 
 ## Step list
 
-Before showing anything, read the diff (for a PRD: `main...feature/<prd-name>`), the PRD and the slice files. Build a numbered list of the **major** changes, meaning behavior, contracts, guards, persistence, UI states and tests that prove them. Skip formatting, renames and boilerplate.
+Before showing anything, read the diff (for a PRD: `<Base sha>...feature/<prd-name>`, using the `Base:` line in the PRD header, never assume `main`), the PRD and the slice files. Build a numbered list of the **major** changes, meaning behavior, contracts, guards, persistence, UI states and tests that prove them. Skip formatting, renames and boilerplate.
 
 Order the steps in **execution-flow order**: follow a real request from its entry point through API, service and persistence to UI, not file order. When there are several flows, walk each one in turn and name it in the list. Each step links to its slice.
 
@@ -48,7 +48,7 @@ Wait for the developer after every card.
 
 - `next` / `back` / `go N` — move the pointer and show that card. A step you leave is marked `✓`.
 - `ask …` — answer about the current step from the code and evidence, then stay on it.
-- `change …` — record in that step's slice file under `Change requests`: `Change request by <git user.name> · <date> · file:line · <what to do differently>`. Mark the step `✎` and continue the walk. Do **not** dispatch anything yet.
+- `change …` — record in that step's slice file under `Change requests`: `Change request by <git user.name> · <date> · file:line · <what to do differently> · open`. The orchestrator changes `· open` to `· done (<commit sha>)` when that slice reaches `Completed` again. Mark the step `✎` and continue the walk. Do **not** dispatch anything yet.
 - `approve all` — skip the remaining steps and go to the summary. The sign-off records `approved without viewing steps N–M`. This is honest, not a penalty.
 
 When the walk ends, every slice with change requests goes back to its developer parts, following the transition table, then through review and QA again. The next Guide me shows **only the changed steps**.
@@ -70,4 +70,4 @@ After the last step (or `approve all`), show a one-screen summary: steps viewed,
 - Signed: <git user.name> · <date> · commit <sha>
 ```
 
-Sign-off can't be ACCEPT while change requests are open. Merging into `main` is only **offered** after ACCEPT, and the developer does it.
+Sign-off can't be ACCEPT while any change request is still `· open`, or while any slice is not `Completed`. A later sign-off is appended as a new block; the latest block is the decision. `Signed:` names the reviewed HEAD commit. Merging into `main` is only **offered** after ACCEPT, and the developer does it.

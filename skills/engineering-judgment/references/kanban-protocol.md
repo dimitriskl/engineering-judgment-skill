@@ -25,6 +25,8 @@ Use these exact strings.
 
 A status that is **not in the transition table** (for example, hand-edited) is invalid: stop and ask the developer what it should be. Never guess.
 
+The orchestrator adds a History line for **every** status move it makes (`orchestrator | <from> → <to> | <reason>`), so the board can be rebuilt from the files alone.
+
 ## Transition table
 
 Every allowed move. Any other move is invalid and the orchestrator rejects it.
@@ -39,10 +41,10 @@ Every allowed move. Any other move is invalid and the orchestrator rejects it.
 | `In review` | reviewer FAIL | failed part(s) `To do`, slice `In development` | orchestrator |
 | `In QA` | QA PASS | `Completed` | orchestrator (after QA verdict) |
 | `In QA` | QA FAIL | affected part(s) `To do`, slice `In development` | orchestrator |
-| any | open question | `Blocked: needs clarification` | orchestrator |
-| `Blocked: needs clarification` | developer answered | previous status | orchestrator |
-| any | 3rd failure | `Blocked: needs clarification` (escalate) | orchestrator |
-| `Completed` | merge/integration check fails | `In development` (counts as failure) | orchestrator |
+| any | open question | `Blocked: needs clarification`, header `Blocked from: <status> · question: <ref>` | orchestrator |
+| `Blocked: needs clarification` | developer answered | the status in `Blocked from:` (then clear that line) | orchestrator |
+| any | 3rd failure | `Blocked: needs clarification` with `Blocked from:` (escalate) | orchestrator |
+| `Completed` | merge/integration check fails | owning part(s) `To do`, slice `In development` (counts as failure) | orchestrator |
 | `Completed` | developer change request (Guide me) | changed part(s) `To do`, slice `In development` | orchestrator |
 
 ## Who writes what
@@ -50,19 +52,19 @@ Every allowed move. Any other move is invalid and the orchestrator rejects it.
 | Role | May write | Never writes |
 | --- | --- | --- |
 | analyst | PRD file, slice files, `CONTEXT.md`, ADRs in `docs/adr/` | production code, tests |
-| backend / frontend | its part's **Owned files** and their tests; its own `Part status`; one History line | other parts, slice `Status:`, verdicts, the Contract |
+| backend / frontend | its part's **Owned files** and their tests; its own `Part status` and `Evidence:` block; one History line | other parts, slice `Status:`, verdicts, the Contract |
 | reviewer | **only the slice file**: its verdict, `Review notes`, one History line | source code, tests, any other file |
 | qa | **only the slice file**: its verdict, `QA notes`, one History line | source code, tests, any other file |
 | orchestrator | slice `Status:`, `Failures:`, `Questions & answers`, `Change requests`, the PRD `Slices` index and `Developer sign-off` | production code (while a specialist is callable) |
 
-The orchestrator moves a slice only after checking the evidence is written in the file: commands, their output and exit codes for `Developed`, a verdict with findings for review, and a per-criterion table for QA.
+The orchestrator moves a slice only after checking the evidence is written in the file: the part's `Evidence:` block (`command | exit code | key output`) for `Developed`, a verdict with findings for review, and a per-criterion table for QA.
 
 ## Fresh agent prompts
 
 Every run is a **fresh agent**. Never rely on conversation history, because Codex does not guarantee a clean context. Every prompt is self-contained and includes: role, the slice file path, the PRD path, the files it may change, the update rules from "Who writes what", and what to return.
 
 - **Analyst:** the request, the developer's answers so far, domain docs, relevant code paths. Do the work in `references/analyst-playbook.md`. Return the files written and the open questions, each with a recommended answer.
-- **Backend / frontend:** "Implement only your part of `<slice file>` against its Contract. Read the PRD, the slice, and any Review/QA notes and Change requests addressed to your part. Set your part to `Developing`, then `Developed` only when every test command passed. Add one History line. Return: changed files, commands + output + exit code, assumptions, questions. Do not commit."
+- **Backend / frontend:** "Implement only your part of `<slice file>` against its Contract. Read the PRD, the slice, and any Review/QA notes and Change requests addressed to your part. Set your part to `Developing`; when every test command passed, fill your part's `Evidence:` block (`command | exit code | key output`) and set it to `Developed`. Add one History line. If you need a file outside your Owned files, stop and return a question instead of editing it. Return: changed files, the same evidence, assumptions, questions. Do not commit or stage."
 - **Reviewer:** "Review the diff `<range>` for `<slice file>` against its Contract and acceptance criteria. Edit only this slice file: verdict, Review notes, History. Write PASS or FAIL per part, with `severity | file:line | failure scenario | what must be done`, and what the green checks don't prove."
 - **QA:** "Run the build and test commands, then exercise the feature against every acceptance criterion: happy path, edge, failure, and loading/empty/error states for UI. Edit only this slice file: verdict, QA notes table, criteria with no automated test, History. Write no code."
 
@@ -72,10 +74,10 @@ If a mapped reviewer or QA agent can't write files, the orchestrator records its
 
 Agents stop only when something is unclear and changes what gets built. A subagent can't talk to the developer, so it **returns** its questions. The orchestrator then:
 
-1. Sets the slice to `Blocked: needs clarification` (for the analyst, the PRD stays in progress).
+1. Sets the slice to `Blocked: needs clarification` and writes `Blocked from: <previous status> · question: <ref>` in its header (for the analyst, the question's `Blocks` column names the affected slices).
 2. Asks the developer **in chat, one question at a time**, with the recommended answer.
 3. Records the question and answer: analyst questions in the PRD `Open questions & answers`, all others in the slice `Questions & answers`.
-4. Restores the previous status and dispatches a fresh agent.
+4. Restores the status in `Blocked from:`, clears that line, and dispatches a fresh agent.
 
 ## Retry cap
 
@@ -83,12 +85,16 @@ Agents stop only when something is unclear and changes what gets built. A subage
 
 ## Branches and commits
 
-- On start, if the working tree has **uncommitted** changes or the current branch is `main`, ask the developer before creating anything.
-- Each PRD gets the branch **`feature/<prd-name>`**, created from the current branch.
-- After each verified column step, the orchestrator commits on the slice's branch with the message `<slice-id> <column>: <result>`, so git history mirrors the board. Agents don't commit.
+- **Before dispatching the analyst** (and on every resume), make sure you are on **`feature/<prd-name>`**: create it from the current branch, or switch to it if it exists. Record `Base: <branch>@<sha>` in the PRD header.
+- If the working tree has **uncommitted** changes at that point, ask the developer to choose: **stash** them (`git stash push -u -m engineering-judgment`), **commit** them on their current branch first, or **stop**. Never start agents on top of the developer's uncommitted work.
+- If the current branch is `main`, say so in the same question; the feature branch is still created from it.
+- After each verified step, the orchestrator commits on the current work branch with the message `<prd-or-slice-id> <column>: <result>` (the analysis step included), so git history mirrors the board. Agents don't commit or stage.
+- Serial slices are built directly on `feature/<prd-name>`; only parallel slices get their own worktree branch.
 - Never commit to `main`, never merge into `main`, never push.
 
 ## Parallel worktrees
+
+Within one working tree, the **parts run one after another** (backend, then frontend), never at the same time, so each run's changes can be checked on their own. Two parts of the same slice run in parallel only in separate worktrees.
 
 When **two or more slices are ready and independent** (no `Blocked by` link between them, and no overlapping Owned files), ask the developer whether to run them in parallel. On yes:
 
@@ -116,10 +122,19 @@ A new session rebuilds the board from the files, never from memory:
 
 ## Verdict enforcement
 
-After every reviewer or QA run, check `git diff --name-only` (plus untracked files). If anything other than the slice file changed:
+**Before every dispatch**, record a snapshot: `git rev-parse HEAD` and `git status --porcelain`, and add a History line `orchestrator | dispatch <role> | base <sha>`.
 
-1. Revert those changes.
-2. Add a History line `orchestrator | violation | <agent> changed <files>; reverted`.
-3. Re-run the step with a fresh agent.
+**After the agent returns**, compare against that snapshot:
 
-Apply the same check to developers: changes outside their part's Owned files and tests are reverted, then sent back with a corrective prompt.
+1. **HEAD must not have moved.** Agents never commit or stage. If HEAD moved, stop and ask the developer; do not reset anything yourself.
+2. **Changed paths** = `git diff --name-only <base sha>` plus new untracked files in `git status --porcelain`. Judge only paths that changed during this run, and **never revert a path that was already** modified or untracked in the snapshot.
+3. **Scope check:** every changed path must be allowed for the role ("Who writes what"): the slice file for reviewer and QA, the part's Owned files and their tests for developers.
+4. **Section check:** `git diff <base sha> -- <slice file>` may only touch that role's sections, and History may only gain lines at the end, never lose or rewrite them.
+
+On a violation:
+
+- Revert only this run's out-of-scope changes (`git checkout <base sha> -- <path>`, or delete files the run created), **including this run's edits to the slice file**, so a discarded verdict leaves no trace.
+- Add a History line `orchestrator | violation | <agent> changed <files>; reverted`.
+- Allow **one corrective re-run** with a fresh agent and an explicit warning. A second violation on the same step sets `Blocked: needs clarification` and asks the developer (for example, the Owned files list may be missing a file the part really needs).
+
+Violations do not count toward `Failures:`, but they are capped as above, so no loop runs forever.

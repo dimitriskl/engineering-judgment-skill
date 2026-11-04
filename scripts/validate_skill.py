@@ -78,9 +78,20 @@ REQUIRED = {
     "README.md": ["Guide me", "prd/", "human-on-the-loop", "Developer sign-off"],
     "CHANGELOG.md": ["## 3.0.0"],
 }
+# Final-review fixes: snapshots, evidence, blocked state, change-request state, base branch.
+REQUIRED["skills/engineering-judgment/templates/slice.md"] += ["Blocked from:", "Evidence:", "- Backend:", "- Frontend:"]
+REQUIRED["skills/engineering-judgment/templates/prd.md"] += ["| Blocks |", "Base:"]
+REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
+    "Blocked from:", "git status --porcelain", "never revert a path that was already",
+    "one corrective re-run", "stash", "parts run one after another", "Evidence:",
+]
+REQUIRED["skills/engineering-judgment/references/guide-me.md"] += ["· open", "· done", "Base:"]
+REQUIRED["skills/engineering-judgment/SKILL.md"] += ["before dispatching the analyst", "Evidence:"]
+REQUIRED["skills/engineering-judgment/references/handoff-contract.md"] += ["git status --porcelain"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
+REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] + ["Not signed yet"]
 for rel, phrases in REQUIRED.items():
     path = root / rel
     if not path.is_file():

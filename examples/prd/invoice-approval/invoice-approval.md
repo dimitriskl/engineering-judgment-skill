@@ -3,6 +3,7 @@
 *Illustrative example of the files the skill produces; not a real project.*
 
 PRD: invoice-approval · Created: 2026-11-04 · Analyst: data-analyst-bi-expert
+Branch: feature/invoice-approval · Base: develop@8a41c07
 
 ## Problem Statement
 
@@ -46,9 +47,9 @@ Approvers approve or reject a pending invoice directly in the invoice list. Each
 
 ## Open questions & answers
 
-| # | Question | Recommended answer | Developer answer | Date |
-| --- | --- | --- | --- | --- |
-| 1 | How should simultaneous approvals be prevented? | Optimistic concurrency on the invoice row; cheapest and matches existing EF Core setup | Optimistic concurrency, agreed | 2026-11-04 |
+| # | Question | Recommended answer | Developer answer | Blocks | Date |
+| --- | --- | --- | --- | --- | --- |
+| 1 | How should simultaneous approvals be prevented? | Optimistic concurrency on the invoice row; cheapest and matches existing EF Core setup | Optimistic concurrency, agreed | 001 | 2026-11-04 |
 
 ## Slices
 
@@ -59,12 +60,7 @@ Approvers approve or reject a pending invoice directly in the invoice list. Each
 
 ## Developer sign-off
 
-- Shipped: 1/2 slices Completed (001)
-- Steps viewed: 1–6 (all)
-- Change requests: none
-- Not proved (blind spots): behavior under database failover during approval
-- Decision: ACCEPT — reason: slice 001 meets all criteria; 002 follows in the next session
-- Signed: Example Developer · 2026-11-04 · commit 3f2a1c9
+Not signed yet: slice 002 is still `To do`. Slice 001 is L2 and has its own sign-off in its slice file.
 
 ## Further Notes
 

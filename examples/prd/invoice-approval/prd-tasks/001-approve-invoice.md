@@ -7,6 +7,7 @@ PRD: [../invoice-approval.md](../invoice-approval.md)
 Risk: L2
 Status: Completed
 Blocked by: None
+Blocked from: —
 Failures: 1/3
 
 ## What to build
@@ -35,6 +36,8 @@ Steps:
 3. Add tests for 200, 403, 404, 409 and two parallel approvals.
 Test commands:
 - `dotnet test tests/Invoices.Tests --filter ApproveInvoice` → expected: all pass
+Evidence:
+- dotnet test tests/Invoices.Tests --filter ApproveInvoice | exit 0 | Passed: 7, Failed: 0
 Part status: Developed
 
 ## Frontend part
@@ -49,6 +52,8 @@ Steps:
 2. Call the endpoint with `If-Match`; on 409 show "Already approved by someone else" and refresh the row.
 Test commands:
 - `npx ng test --include=src/app/invoices` → expected: all pass
+Evidence:
+- npx ng test --include=src/app/invoices | exit 0 | Executed 5 of 5 SUCCESS
 Part status: Developed
 
 ## Acceptance criteria
@@ -93,7 +98,7 @@ Criteria with no automated test: none
 - Steps viewed: 1–6 (all)
 - Not proved (blind spots): behavior under database failover during approval
 - Decision: ACCEPT — reason: invariants covered by the parallel-approval test
-- Signed: Example Developer · 2026-11-04 · commit 3f2a1c9
+- Signed: Example Developer · 2026-11-04 · reviewed commit 3f2a1c9
 
 ## History
 

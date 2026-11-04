@@ -62,7 +62,7 @@ See `references/orchestration-matrix.md` for routing and `references/deadline-po
 
 ## Phase 1: Analysis — PRD and slices
 
-For a new, ambiguous or multi-slice change, dispatch the **analyst** (a fresh agent) with the request, the developer's answers so far, domain docs and relevant code paths. It follows `references/analyst-playbook.md`:
+First, before dispatching the analyst, create or switch to `feature/<prd-name>` (ask about uncommitted changes as in `references/kanban-protocol.md`, "Branches and commits"). Then, for a new, ambiguous or multi-slice change, dispatch the **analyst** (a fresh agent) with the request, the developer's answers so far, domain docs and relevant code paths. It follows `references/analyst-playbook.md`:
 
 - explores the code and `CONTEXT.md` before asking anything;
 - returns only the questions that change what gets built, each with a recommended answer. Ask the developer in chat, record the answers in the PRD's `Open questions & answers`, and dispatch a fresh analyst to continue;
@@ -75,9 +75,9 @@ Check the output yourself before the board starts: every slice has a complete Co
 
 Follow `references/kanban-protocol.md` exactly: statuses, the transition table, who writes what, fresh-agent prompts, questions, the retry cap, branches and commits, parallel worktrees, after-merge checks, resume, and verdict enforcement. In short:
 
-1. Create `feature/<prd-name>` (ask first if on `main` or with uncommitted changes).
+1. Make sure you are on `feature/<prd-name>` (created before the analyst ran).
 2. Pick the next **ready** slice (not blocked, dependencies `Completed`). If two or more ready slices are independent, ask the developer whether to run them in parallel worktrees.
-3. Dispatch the column's agent fresh, wait, read the changed files and the slice file yourself, check the evidence and the `git diff --name-only` scope, then move the slice by the transition table and commit `<slice-id> <column>: <result>`.
+3. Record a snapshot (HEAD + `git status --porcelain`), dispatch the column's agent fresh, wait, read the changed files and the slice file yourself, check the evidence and the change scope against the snapshot, then move the slice by the transition table and commit `<slice-id> <column>: <result>`.
 4. Repeat until every slice is `Completed` or `Blocked: needs clarification`.
 
 ## Phase 3: Development
@@ -87,7 +87,7 @@ Dispatch the mapped **backend** and/or **frontend** specialist for each part, ea
 - **Backend**: service/API, persistence, authorization, retries, tests. For .NET also see `references/dotnet-review.md`.
 - **Frontend**: components/forms, typed service clients, state, accessibility, tests. For Angular also see `references/angular-review.md`.
 
-Both build against the slice's **Contract**; neither changes it silently. With a fixed contract, the two parts of one slice may run in parallel. A part is `Developed` only when its test commands ran and their output is in the agent's return. Delegation details are in `references/handoff-contract.md`.
+Both build against the slice's **Contract**; neither changes it silently. In one working tree the parts run one after another; they run in parallel only in separate worktrees. A part is `Developed` only when its test commands ran and the developer wrote them into the part's `Evidence:` block (`command | exit code | key output`). Delegation details are in `references/handoff-contract.md`.
 
 ## Phase 4: Review
 
@@ -101,7 +101,7 @@ After review PASS, dispatch a fresh **QA** agent. It runs the build and test com
 
 ## Phase 6: Integration
 
-Merge each `Completed` slice into `feature/<prd-name>`, then run the build, tests and contract check on the **combined** code and record the output. Separate green backend and frontend tests do **not** prove end-to-end correctness: check API compatibility, JSON naming/nullability, date/time, error codes, auth/CORS, and UI states. Merge conflicts go to the owning developer. A failure reopens the slice and counts toward its retry cap. If a seam can't be checked, mark it unverified.
+Merge each `Completed` slice into `feature/<prd-name>`, then run the build, tests and contract check on the **combined** code and record the output. Separate green backend and frontend tests do **not** prove end-to-end correctness: check API compatibility, JSON naming/nullability, date/time, error codes, auth/CORS, and UI states. Merge conflicts go to the owning developer. A failure sets the owning parts back to `To do`, reopens the slice and counts toward its retry cap. If a seam can't be checked, mark it unverified.
 
 ## Phase 7: Developer sign-off
 

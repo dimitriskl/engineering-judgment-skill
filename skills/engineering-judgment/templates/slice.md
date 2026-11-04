@@ -8,6 +8,7 @@ PRD: [../<prd-name>.md](../<prd-name>.md)
 Risk: L1 | L2
 Status: To do
 Blocked by: None
+Blocked from: —
 Failures: 0/3
 
 ## What to build
@@ -36,6 +37,8 @@ Steps:
 1. 
 Test commands:
 - `<exact command>` → expected: <result>
+Evidence:
+- <command> | exit <code> | <key output>
 Part status: To do
 
 ## Frontend part
@@ -49,6 +52,8 @@ Steps:
 1. 
 Test commands:
 - `<exact command>` → expected: <result>
+Evidence:
+- <command> | exit <code> | <key output>
 Part status: To do
 
 ## Acceptance criteria
@@ -64,10 +69,13 @@ Part status: To do
 
 ## Review notes
 
-<!-- Written by the reviewer agent itself. One block per round. -->
+<!-- Written by the reviewer agent itself. One block per round, one verdict per part. -->
 
-Round 1 · <agent> · PASS | FAIL
-- <severity> · `file:line` · <failure scenario> · what must be done: …
+Round 1 · <agent>
+- Backend: PASS | FAIL
+  - <severity> | `file:line` | <failure scenario> | <evidence> | what must be done: …
+- Frontend: PASS | FAIL
+- Not proved by the green checks: …
 
 ## QA notes
 
@@ -82,7 +90,8 @@ Criteria with no automated test: …
 
 <!-- Added by the orchestrator from the developer's Guide me session. -->
 
-- Change request by <git user.name> · YYYY-MM-DD · `file:line` · <what to do differently>
+- Change request by <git user.name> · YYYY-MM-DD · `file:line` · <what to do differently> · open
+<!-- The orchestrator changes `open` to `done (<commit sha>)` when the slice reaches Completed again. -->
 
 ## Developer sign-off
 
