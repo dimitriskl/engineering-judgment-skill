@@ -108,11 +108,12 @@ Step 2/7 · src/Auth/TwoFactorService.cs:40-58
     ✓ tests/Auth/TwoFactorServiceTests.cs:51 · VerifyCode_WrongCode_Returns401
         a wrong code is rejected and counted as a failed attempt · PASS · new
 ──────────────────────────────────────────────────────────────────
- next · back · go 7 · tests · ask … · change … · approve all
+ next · back · go 7 · open 2 · tests · ask … · change … · approve all
 ```
 
 - **Each card** shows where the code is (`file:line`), **what** it does, **why** (the slice and acceptance criterion) and the **tests** written for that step: file and line, test name, what it checks in plain words, its result (PASS / FAIL / NOT RUN) and whether it is new, changed or existing. A step with no test shows `none written — not verified`.
 - **`next` / `back` / `go N`** move through the list; viewed steps get `✓`. **`tests`** shows the code of those tests (arrange, act, assert). **`ask …`** answers from the code and evidence and stays on the step.
+- **Your editor follows along.** When the session runs inside VS Code (terminal or AI pane), each card opens its file at the step's line in your editor (`code -r -g <file>:<line>`; `cursor` for Cursor). **`open 2`** jumps to the card's second location (its first test), and **`editor off`** / **`editor on`** turn this off and back on. Every `file:line` is also Ctrl+clickable in VS Code's terminal. In the AI panes, clicks don't always work yet, which is why the jump exists. Outside VS Code, or if the `code` command is missing, you get the text links only.
 - **`change …`** is saved in that slice file as an `open` change request and the step gets `✎`. You keep walking. At the end, those slices go back to the developer, then review and QA again, and the next Walkthrough shows **only the changed steps**.
 - **`approve all`** skips the rest; the sign-off honestly records which steps you didn't view.
 - **At the end** you see a one-screen summary: steps viewed, change requests, and **blind spots** (what the tests did not prove). Then you choose **ACCEPT** or **REJECT**. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is written into the PRD's `Developer sign-off` with your git name, the date and the commit, then the orchestrator offers the merge; you do it.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.2.0 — Clickable locations, editor follows the Walkthrough (2026-11-05)
+
+- Every file location is written as `path/from/repo/root.ext:line`, so VS Code's terminal makes it Ctrl+clickable; every agent prompt asks for the same format.
+- In the Walkthrough, the editor opens each step's file at its line (`code -r -g`, or `cursor`) when the session runs inside VS Code. New commands: `open N` (jump to a test or other location on the card), `editor off` / `editor on`. If the jump is unavailable, the walk continues with text links.
+
 ## 3.1.0 — Walkthrough, speaker labels, lean orchestrator, model and effort per role (2026-11-05)
 
 - **Guide me is renamed Walkthrough.** The old name still works as an alias.

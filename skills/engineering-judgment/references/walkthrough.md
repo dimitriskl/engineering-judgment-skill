@@ -38,19 +38,32 @@ Step 3/9 · src/Invoices/ApproveInvoiceHandler.cs:42-51
     ✓ tests/Invoices/ApproveInvoiceTests.cs:52 · Approve_Pending_SetsApproved
         a pending invoice becomes Approved · PASS · new
 ──────────────────────────────────────────────────────────
- next · back · go 7 · tests · ask … · change … · approve all
+ next · back · go 7 · open 2 · tests · ask … · change … · approve all
 ```
 
-- **Location:** `file:line-range` of the real code. Show the key lines if they help, but keep it short.
+- **Location:** `file:line-range` of the real code, written as `path/from/repo/root.ext:line` (see "Editor follows the walk"). Show the key lines if they help, but keep it short.
 - **What:** what the code does, in plain words.
 - **Why:** the slice and acceptance criterion or invariant it serves.
 - **Tests:** every test that covers this step, one entry each: `<file:line> · <test name>`, then `<what it checks, in plain words> · PASS | FAIL | NOT RUN · new | changed | existing`. `new` and `changed` come from the diff; results come from the parts' `Evidence:` blocks and the QA notes, never from memory. Mark each entry `✓` (PASS), `✗` (FAIL) or `?` (NOT RUN). If a step has no test, show `Tests: none written — not verified`; it also goes into the blind spots at sign-off.
+
+## Editor follows the walk
+
+Every location on a card (step code, tests, change requests, findings) is written as `path/from/repo/root.ext:line`: relative to the repository root, forward slashes, no space before `:line` (a range is `:42-51`). VS Code's terminal turns that text into a Ctrl+click link; AI chat panes may or may not, so don't rely on the click alone.
+
+**The editor moves by itself.** Each time a card is shown, run `code -r -g "<absolute path>:<line>"` for the step's code location, so the file opens at that line in the developer's open VS Code window. Use the absolute path of the tree the code is in (for an unmerged parallel slice, its worktree). Do it only when:
+
+- the session runs inside VS Code: `TERM_PROGRAM=vscode`, or `VSCODE_IPC_HOOK_CLI` / `VSCODE_PID` is set (otherwise `code` would start a new window); or the developer typed `editor on`;
+- the `code` command exists (`cursor` for Cursor, the same flags).
+
+If neither holds, or the command fails once (for example, a sandbox blocks it), say so in one line (`⚪ orchestrator [<model>, <effort>]: editor jump unavailable — use the links or Ctrl+P`), stop trying for this walk, and keep going with text only. Moving the editor never changes a file.
 
 ## Commands
 
 Wait for the developer after every card.
 
 - `next` / `back` / `go N` — move the pointer and show that card. A step you leave is marked `✓`.
+- `open N` — move the editor to location N of the current card (1 = the step's code, 2 and up = its tests, in the order shown), then stay on it.
+- `editor off` / `editor on` — stop or restart moving the editor.
 - `tests` — show the key lines of each test for the current step (arrange, act, assert), then stay on it.
 - `ask …` — answer about the current step from the code and evidence, then stay on it.
 - `change …` — record in that step's slice file under `Change requests`: `Change request by <git user.name> · <date> · file:line · <what to do differently> · open`. The orchestrator changes `· open` to `· done (<commit sha>)` when that slice reaches `Completed` again. Mark the step `✎` and continue the walk. Do **not** dispatch anything yet.

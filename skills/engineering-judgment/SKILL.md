@@ -2,7 +2,7 @@
 name: engineering-judgment
 description: Orchestrate AI-assisted software development across any stack as a file-based kanban — an analyst writes a PRD and implementable slices under prd/, fresh developer, reviewer and QA agents move each slice to Completed, and the developer signs off after a guided walkthrough. Risk-scaled, evidence-based, works in Claude Code and Codex CLI. Use for features, bugs, PRs, audits, walkthroughs and deadline-driven delivery.
 metadata:
-  version: "3.1.0"
+  version: "3.2.0"
 ---
 
 # Engineering Judgment Skill — Development Orchestrator
@@ -49,6 +49,8 @@ Roles are `analyst`, `backend`, `frontend`, `reviewer`, `qa`, or `orchestrator` 
 **Lean orchestrator.** Your context lasts the whole run, so spend it on decisions, not on code. Read the board (PRD header, slice headers, statuses, verdicts, `Evidence:` blocks), `git status` and `git diff --name-only`, and run the gate commands yourself; never read source files or run code searches that an agent can do. Ask every agent for a report of at most 10 lines; the details belong in the slice file. Relay one short line per agent result, never its full output. **Every agent, you included, auto-compacts at 40%** context used while its job is still running; a **fresh agent** starts only for the next job. Save the board at every checkpoint, check once that auto-compact at 40% is configured, and after any compaction rebuild the board from the files (`references/kanban-protocol.md`, "Context checkpoints").
 
 **Every chat message names its speaker.** Each role has one color marker: 🟣 analyst · 🔵 backend · 🟢 frontend · 🟠 reviewer · 🟡 qa · ⚪ orchestrator. Start every paragraph that relays or summarizes an agent's output with `<color> <role> [<model>, <effort>] (<agent name>):`, for example `🟣 analyst [opus, high] (requirements-analyst): The plan adds one shared protection key…`. `[<model>, <effort>]` is what that run actually used; write `session` for a value that came from the session and you can't name. Start your own commentary with `⚪ orchestrator [<your model>, <your effort>]:`. In Codex, read them from `model` and `model_reasoning_effort` in the project's `.codex/config.toml` or `~/.codex/config.toml`; for anything you can't name, write `session`, for example `⚪ orchestrator [session]:`. Never omit the brackets, for any role. Never print agent text without its speaker, and never mix two agents in one paragraph.
+
+**Every file location is a link.** In chat, slice files and the PRD, write locations as `path/from/repo/root.ext:line` (relative to the repository root, forward slashes, no space before `:line`; a range is `:42-51`). VS Code's terminal makes that Ctrl+clickable. Tell every agent to use the same format. In the Walkthrough the editor also jumps to each step (`references/walkthrough.md`).
 
 ## Select mode and required depth
 
