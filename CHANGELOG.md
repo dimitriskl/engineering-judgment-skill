@@ -8,6 +8,7 @@
 - **Lean orchestrator:** it reads the board, not the code; agents report in at most 10 lines; every agent auto-compacts at 40% context used while its job runs, and a fresh agent starts only for the next job (README shows the Claude Code and Codex settings); after a compaction the board is rebuilt from the files. Subagent runs get readable names (`backend_s001`) and a `subagent … started` line. The README's 30-second start walks through a 2FA example, including what happens in the Walkthrough step.
 - Every Walkthrough step card lists the tests written for that step (file:line, name, what it checks, result, new/changed/existing), and the `tests` command shows their code.
 - **Model and effort per role:** `.engineering-workflow.json` sets `model` and `effort` per role, each with a `claude` and a `codex` value; the orchestrator detects the host, passes the matching values on every agent start, shows them in the status line, accepts a per-run override (`reviewer: opus high`), and asks once when a model is empty. Defaults: analyst and reviewer on the strong model at high effort, developers on a mid model at medium, QA at low.
+- **One-command installer** (`install/install.ps1` for Windows, `install/install.sh` for Linux and macOS): installs or updates the skill and all agents, asks personal or project scope once, sets auto-compact at 40% if unset.
 - README: how to update global installs (`npx skills update -g`) and why a running session keeps the old instructions.
 
 ## 3.0.0 — PRD folders, kanban orchestration, Guide me sign-off (2026-11-04)

@@ -144,6 +144,12 @@ for f in sorted((root / "skills").rglob("*.md")) + [root / "README.md"] + sorted
     for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
         if "⚪ orchestrator:" in line:
             errors.append(f"{f.relative_to(root).as_posix()}:{n} orchestrator label without brackets")
+# One-command installer for the skill and every agent, on Windows, Linux and macOS.
+REQUIRED["install/agents.txt"] = ["requirements-analyst", "csharp-expert-developer", "angular-typescript-developer",
+                                  "qa-automation-engineer", "senior-code-reviewer"]
+REQUIRED["install/install.sh"] = ["install/agents.txt", "skills add", "install-scope", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE", "model_auto_compact_token_limit"]
+REQUIRED["install/install.ps1"] = REQUIRED["install/install.sh"]
+REQUIRED["README.md"] += ["install/install.ps1 | iex", "install/install.sh | bash"]
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]

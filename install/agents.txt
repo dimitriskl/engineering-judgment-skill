@@ -1,0 +1,9 @@
+# Agents installed by install.sh and install.ps1, one GitHub repository name per line (owner: dimitriskl).
+requirements-analyst
+csharp-expert-developer
+angular-typescript-developer
+qa-automation-engineer
+senior-code-reviewer
+ui-ux-developer
+software-architect
+data-analyst-bi-expert

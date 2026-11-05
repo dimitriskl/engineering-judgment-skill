@@ -13,15 +13,28 @@ AI coding agents can write a feature in minutes. That does **not** mean the team
 
 ## 30-second start
 
-From your project directory, with Node.js and a supported coding-agent client installed:
+**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project directory (Node.js 22.20 or later required):
 
-```bash
-npx skills add dimitriskl/engineering-judgment-skill --skill engineering-judgment
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/main/install/install.ps1 | iex
 ```
 
-Choose your coding agent when prompted. Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
+```bash
+# Linux and macOS
+curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/main/install/install.sh | bash
+```
 
-**Once: set auto-compact to 40%.** Models get less reliable once their context is more than about 40% full. Every agent that is still working on its job compacts automatically at 40% and carries on; the next job always starts in a fresh agent. This is a host setting:
+- **First run** asks once: **personal** (all your projects: `~/.claude`, `~/.codex`) or **project** (only the current folder).
+- **Later runs** reuse that answer and **update** whatever is already installed. Changed agent files are replaced, and your old copy is kept as `<file>.bak`. To change the answer, run with `--scope personal|project` (bash: `… | bash -s -- --scope project`) or set `$env:EJ_SCOPE` (PowerShell).
+- It also sets **auto-compact at 40%** (below) if you haven't set it yourself, and in project scope adds `.engineering-workflow.json` if the project has none.
+- The agent list lives in [`install/agents.txt`](install/agents.txt).
+
+Only want the skill? `npx skills add dimitriskl/engineering-judgment-skill --skill engineering-judgment`, then choose your coding agent when prompted.
+
+Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
+
+**Once: set auto-compact to 40%.** Models get less reliable once their context is more than about 40% full. Every agent that is still working on its job compacts automatically at 40% and carries on; the next job always starts in a fresh agent. This is a host setting; the installer above sets it for you, or set it by hand:
 
 ```powershell
 # Claude Code (main session and subagents). Windows PowerShell; on macOS/Linux: export CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=40
