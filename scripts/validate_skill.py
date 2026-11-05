@@ -66,7 +66,7 @@ REQUIRED = {
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
     "skills/engineering-judgment/SKILL.md": [
-        'version: "3.0.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
+        'version: "3.1.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
         "references/analyst-playbook.md", "references/walkthrough.md", "templates/prd.md",
         "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
     ],
@@ -76,7 +76,7 @@ REQUIRED = {
     "skills/engineering-judgment/references/orchestration-matrix.md": ["Walkthrough", "prd/"],
     "skills/engineering-judgment/references/training-drills.md": ["teach-back"],
     "README.md": ["Walkthrough", "prd/", "human-on-the-loop", "Developer sign-off"],
-    "CHANGELOG.md": ["## 3.0.0"],
+    "CHANGELOG.md": ["## 3.1.0", "## 3.0.0"],
 }
 # Final-review fixes: snapshots, evidence, blocked state, change-request state, base branch.
 REQUIRED["skills/engineering-judgment/templates/slice.md"] += ["Blocked from:", "Evidence:", "- Backend:", "- Frontend:"]
@@ -140,6 +140,10 @@ REQUIRED["README.md"] += ["npx skills update -g"]
 _skill_text = (root / "skills/engineering-judgment/SKILL.md").read_text(encoding="utf-8")
 if "`⚪ orchestrator:` if you don't know" in _skill_text:
     errors.append("SKILL.md still allows an orchestrator label without brackets")
+for f in sorted((root / "skills").rglob("*.md")) + [root / "README.md"] + sorted((root / "examples").rglob("*.md")):
+    for n, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+        if "⚪ orchestrator:" in line:
+            errors.append(f"{f.relative_to(root).as_posix()}:{n} orchestrator label without brackets")
 # The example PRD folder must follow the templates.
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
 REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]

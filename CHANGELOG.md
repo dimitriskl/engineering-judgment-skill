@@ -1,6 +1,16 @@
 # Changelog
 
-## 3.0.0 — PRD folders, kanban orchestration, Walkthrough sign-off (2026-11-04)
+## 3.1.0 — Walkthrough, speaker labels, lean orchestrator, model and effort per role (2026-11-05)
+
+- **Guide me is renamed Walkthrough.** The old name still works as an alias.
+- New default analyst **requirements-analyst** (derived from software-architect), linked in the README; data-analyst-bi-expert stays available as an alternative.
+- Every chat message names its speaker and the model and effort it ran on (`<color> <role> [<model>, <effort>] (<agent name>):`), with one color marker per role: 🟣 analyst, 🔵 backend, 🟢 frontend, 🟠 reviewer, 🟡 qa, ⚪ orchestrator. Questions show who raised them and `Question n/N`. The brackets are mandatory; `[session]` when a value is unknown.
+- **Lean orchestrator:** it reads the board, not the code; agents report in at most 10 lines; every agent auto-compacts at 40% context used while its job runs, and a fresh agent starts only for the next job (README shows the Claude Code and Codex settings); after a compaction the board is rebuilt from the files. Subagent runs get readable names (`backend_s001`) and a `subagent … started` line. The README's 30-second start walks through a 2FA example, including what happens in the Walkthrough step.
+- Every Walkthrough step card lists the tests written for that step (file:line, name, what it checks, result, new/changed/existing), and the `tests` command shows their code.
+- **Model and effort per role:** `.engineering-workflow.json` sets `model` and `effort` per role, each with a `claude` and a `codex` value; the orchestrator detects the host, passes the matching values on every agent start, shows them in the status line, accepts a per-run override (`reviewer: opus high`), and asks once when a model is empty. Defaults: analyst and reviewer on the strong model at high effort, developers on a mid model at medium, QA at low.
+- README: how to update global installs (`npx skills update -g`) and why a running session keeps the old instructions.
+
+## 3.0.0 — PRD folders, kanban orchestration, Guide me sign-off (2026-11-04)
 
 **Breaking:** the skill no longer invokes external planning skills (`grill-with-docs`, `to-prd`, `to-issues`). Their useful abilities are built into the analyst playbook.
 
@@ -8,15 +18,11 @@
 - The analyst writes `prd/<prd-name>/<prd-name>.md` and fully implementable vertical slices in `prd-tasks/` (Contract, backend/frontend parts with exact files and test commands, acceptance criteria). New templates `prd.md` and `slice.md`.
 - Kanban protocol: exact statuses, transition table, who writes what, questions asked in chat and saved to the files, 3-failure retry cap, `feature/<prd-name>` branches, optional parallel worktrees, integration check after merge, resume from files, `git diff` write-scope enforcement.
 - Reviewer and QA write their own verdicts into the slice file; FAIL sends work back to the developer.
-- New **Walkthrough** mode (named Guide me in early 3.0.0 builds; that name still works): numbered step list in execution-flow order, one step card at a time (`next`, `back`, `go N`, `ask`, `change`, `approve all`), ending in a recorded **Developer sign-off** (ACCEPT / REJECT). L2 slices are signed off individually.
-- Every chat message names its speaker and the model and effort it ran on (`<color> <role> [<model>, <effort>] (<agent name>):`), with one color marker per role: 🟣 analyst, 🔵 backend, 🟢 frontend, 🟠 reviewer, 🟡 qa, ⚪ orchestrator. Questions show who raised them and `Question n/N`.
-- **Lean orchestrator:** it reads the board, not the code; agents report in at most 10 lines; every agent auto-compacts at 40% context used while its job runs, and a fresh agent starts only for the next job (README shows the Claude Code and Codex settings); after a compaction the board is rebuilt from the files. Subagent runs get readable names (`backend_s001`) and a `subagent … started` line. The README's 30-second start walks through a 2FA example, including what happens in the Guide me step.
-- Every Walkthrough step card lists the tests written for that step (file:line, name, what it checks, result, new/changed/existing), and the `tests` command shows their code.
-- **Model and effort per role:** `.engineering-workflow.json` sets `model` and `effort` per role, each with a `claude` and a `codex` value; the orchestrator detects the host, passes the matching values on every agent start, shows them in the status line, accepts a per-run override (`reviewer: opus high`), and asks once when a model is empty. Defaults: analyst and reviewer on the strong model at high effort, developers on a mid model at medium, QA at low.
+- New **Guide me** mode (renamed **Walkthrough** in 3.1.0): numbered step list in execution-flow order, one step card at a time (`next`, `back`, `go N`, `ask`, `change`, `approve all`), ending in a recorded **Developer sign-off** (ACCEPT / REJECT). L2 slices are signed off individually.
 - **Human-on-the-loop** made explicit. Teach-back questions now happen only in Drill mode.
 - Validator checks required sections, banned planning-skill names, and teach-back placement. Example PRD folder in `examples/prd/`.
 - Before each agent run the orchestrator records a snapshot and checks the agent stayed in scope; the developer's uncommitted work is never touched. Developers record an `Evidence:` block; blocked slices record `Blocked from:`; change requests are `open` / `done`.
-- The default `.engineering-workflow.json` maps the author's published agents (requirements-analyst, csharp-expert-developer, angular-typescript-developer, qa-automation-engineer, senior-code-reviewer); the README links each one for download. The new requirements-analyst agent (derived from software-architect) is the default analyst; data-analyst-bi-expert stays available as an alternative.
+- The default `.engineering-workflow.json` maps the author's published agents (data-analyst-bi-expert, csharp-expert-developer, angular-typescript-developer, qa-automation-engineer, senior-code-reviewer); the README links each one for download.
 
 ## 2.2.0 — Analyst and QA roles, live agent status (2026-11-04)
 
