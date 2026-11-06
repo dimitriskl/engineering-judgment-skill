@@ -358,6 +358,18 @@ Use the corresponding destination for your agent. Restart its session, then invo
 
 Check [CHANGELOG.md](CHANGELOG.md) first. A new major version (for example 2.x → 3.0.0) can change how the skill works or what `.engineering-workflow.json` contains.
 
+**Update the skill and all agents together** (Node.js 22.20 or later):
+
+```powershell
+irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/main/install/update.ps1 | iex
+```
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/main/install/update.sh | bash
+```
+
+The updater runs the installer again and reuses the saved personal or project scope. For a project install, run it from that project directory. To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `... | bash -s -- --scope project` in bash. Changed agent files are backed up as `<file>.bak`; existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
+
 **Installed with `npx skills`** (Node.js 22.20 or later):
 
 ```bash
@@ -393,7 +405,7 @@ Use the same skills folder you installed to (`.agents/skills/`, `.claude/skills/
 - Start a new agent session, so the new version is loaded.
 - Compare your project's `.engineering-workflow.json` with the [current default](.engineering-workflow.json) and remove keys the skill no longer reads.
 - Your `prd/` folders are not touched by an update. A new session resumes the board from them.
-- The agents are updated separately. Each agent repository's README explains how (see [Agents](#agents-use-mine-or-map-your-own)).
+- If you update only the skill with `npx skills` or manually, update the agents separately or use the combined updater above.
 
 ## Requirements, trust, and limitations
 
