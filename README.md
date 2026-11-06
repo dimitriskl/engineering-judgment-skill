@@ -1,5 +1,7 @@
 # Engineering Judgment Skill
 
+Walkthroughs begin with a plain-language explanation of the approach and a code map showing the files, classes and methods involved. Interfaces that support diagrams can also show a visual flow.
+
 For a PR or Ship handoff, the workflow summarizes merge risk across verification, alignment, impact, rollback and error detection. QA can attach concise evidence of meaningful UI flows, and teams can optionally learn from review misses and false positives. Existing L0–L2 routing and human sign-off remain in place.
 
 **Ship AI-assisted code you can explain, verify, and stand behind.**
