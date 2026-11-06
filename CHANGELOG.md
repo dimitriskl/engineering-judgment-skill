@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.4.0 — Clear communication and walkthrough maps (2026-11-06)
+
+- Use accessible language while preserving exact code references and evidence.
+- Explain the approach and map files, classes and methods before the walkthrough, with an optional diagram.
+
 ## 3.3.0 — Merge risk and review evidence (2026-11-06)
 
 - Add an evidence-based PR and Ship merge-risk card with five dimensions, unknowns, mitigation and review focus.

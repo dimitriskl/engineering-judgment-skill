@@ -66,7 +66,7 @@ REQUIRED = {
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
     "skills/engineering-judgment/SKILL.md": [
-        'version: "3.3.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
+        'version: "3.4.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
         "references/analyst-playbook.md", "references/walkthrough.md", "templates/prd.md",
         "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
     ],
