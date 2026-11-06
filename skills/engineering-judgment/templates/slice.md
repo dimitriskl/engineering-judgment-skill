@@ -85,6 +85,7 @@ Round 1 · <agent> · PASS | FAIL
 | Criterion | How checked | Result | Evidence |
 | --- | --- | --- | --- |
 Criteria with no automated test: …
+UI flow evidence (when useful): <flow, environment, result, before/after artifact links or reason unavailable / unnecessary>; do not include sensitive data.
 
 ## Change requests
 
