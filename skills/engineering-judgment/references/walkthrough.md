@@ -7,6 +7,12 @@ The Walkthrough shows the developer **what was built, in the order it runs**, on
 
 The Walkthrough never quizzes the developer. Check questions belong only to Drill mode.
 
+## Approach and code map
+
+Before the numbered step list, explain the approach in two to four short sentences for a reader who may not be a programmer or a native English speaker: the goal, the main choice and how information moves. Explain necessary technical words when first used. Then show a compact map in execution order that names the actual files, classes and methods and states each one's role and what it passes to the next part. Include key decision and error branches where they matter. Base names and relationships on inspected code; identify unknown or unverified links explicitly and never invent them. If a flow crosses frontend and backend, show their connection.
+
+When the current graphical interface can render a diagram, also show a compact flow diagram, such as Mermaid, with short labels and at most five nodes per row. Split larger maps by flow or use a top-down layout. A diagram supplements the text map; if rendering is unavailable, use the text map. For large changes, group low-level details and identify the main path. Keep the map accessible with a `map` command during the walk, and refresh it after changes.
+
 ## Step list
 
 Before showing anything, read the diff (for a PRD: `<Base sha>...feature/<prd-name>`, using the `Base:` line in the PRD header, never assume `main`), the PRD and the slice files. Build a numbered list of the **major** changes, meaning behavior, contracts, guards, persistence, UI states and tests that prove them. Skip formatting, renames and boilerplate.
@@ -61,6 +67,7 @@ If neither holds, or the command fails once (for example, a sandbox blocks it), 
 
 Wait for the developer after every card.
 
+- `map` — show the approach and code map again without advancing.
 - `next` / `back` / `go N` — move the pointer and show that card. A step you leave is marked `✓`.
 - `open N` — move the editor to location N of the current card (1 = the step's code, 2 and up = its tests, in the order shown), then stay on it.
 - `editor off` / `editor on` — stop or restart moving the editor.
