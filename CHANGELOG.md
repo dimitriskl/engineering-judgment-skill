@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.3.0 — Merge risk and review evidence (2026-11-06)
+
+- Add an evidence-based PR and Ship merge-risk card with five dimensions, unknowns, mitigation and review focus.
+- Capture useful, sanitized UI flow evidence and explicitly report unavailable checks.
+- Add optional review learning from missed defects and false positives.
+
+
 ## 3.2.0 — Clickable locations, editor follows the Walkthrough (2026-11-05)
 
 - Every file location is written as `path/from/repo/root.ext:line`, so VS Code's terminal makes it Ctrl+clickable; every agent prompt asks for the same format.
