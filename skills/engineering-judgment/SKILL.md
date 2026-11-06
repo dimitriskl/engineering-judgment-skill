@@ -2,7 +2,7 @@
 name: engineering-judgment
 description: Orchestrate AI-assisted software development across any stack as a file-based kanban — an analyst writes a PRD and implementable slices under prd/, fresh developer, reviewer and QA agents move each slice to Completed, and the developer signs off after a guided walkthrough. Risk-scaled, evidence-based, works in Claude Code and Codex CLI. Use for features, bugs, PRs, audits, walkthroughs and deadline-driven delivery.
 metadata:
-  version: "3.2.0"
+  version: "3.3.0"
 ---
 
 # Engineering Judgment Skill — Development Orchestrator
@@ -108,6 +108,8 @@ When all parts are `Developed`, dispatch a fresh **reviewer** with the diff rang
 
 After review PASS, dispatch a fresh **QA** agent. It runs the build and test commands, then exercises the feature against every acceptance criterion: happy path, edge cases, failure paths, and loading/empty/error states for UI. It writes its own per-criterion table (`criterion | how checked | PASS / FAIL / NOT RUN | evidence`) and the criteria that have no automated test into the slice file. It writes no code. FAIL sends the affected parts back to development. For L2, QA must cover the failure paths and invariants.
 
+**UI evidence.** For a meaningful user-facing UI change, QA exercises the key flow using available browser or computer-use tools in a safe test environment. Capture a concise before/after screenshot or short recording when useful; label the flow, environment and result, and link artifacts in the QA evidence. Redact sensitive data. If the prior state, tools or environment are unavailable, record that fact and mark the affected check NOT RUN; never imply a screenshot proves untested behavior. For non-visual or trivial changes, record why visual evidence is unnecessary.
+
 **Analyst data check.** When a slice touches queries, reports, metrics, exports or data migrations, also dispatch the analyst for a read-only data check (see the playbook). Never let it write to shared or production data.
 
 ## Phase 6: Integration
@@ -120,13 +122,18 @@ When every slice is `Completed` and integrated, run **Walkthrough** (`references
 
 ## Phase 8: Handoff
 
+For a PR or Ship handoff, produce a concise **merge-risk card**, grounded in the actual diff and evidence. For each dimension report low / medium / high / unknown, a reason and evidence: verification; alignment with the request; impact and sensitive paths; rollback difficulty and procedure; and production error detection. Use unknown when evidence is missing. Highlight the most consequential rating and unknowns; do not average away a high risk or present the card as approval. State the top areas for the human to review, practical mitigations, unverified checks, and any decision needed. Keep the slice's L0–L2 classification: it determines workflow depth and is distinct from this PR-level assessment. Where a PR template exists, include or link the card without publishing it unless requested.
+
+**Review learning (optional).** With the developer's agreement and project policy, record missed defects, false positives, regressions and reverts as sanitized examples with expected findings and evidence. Periodically compare reviewer performance on these cases and, where available, review time and rounds. Record unavailable metrics as unknown; do not infer reviewer accuracy from an LLM score alone. Use the results to propose changes for human review; do not silently alter review rules.
+
+
 Use the short form (5 lines in Deadline) or this normal form:
 
 1. `Delivered`: the PRD and slices, with file/commit references.
 2. `Agents actually used`: analyst, specialists, reviewer and QA by name, each marked dispatched / fallback / unavailable.
 3. `Evidence`: exact commands, exit codes, meaningful output, the QA per-criterion results, criteria with no automated test, and **what each check proves**.
 4. `Open risks`: assumptions, remaining findings, blind spots (`The strongest test proved X; it did not prove Y.`), rollback concerns.
-5. `Judgment`: one consequential decision and who made it.
+5. `Judgment`: one consequential decision and who made it; include or link the merge-risk card for a PR or Ship handoff.
 6. `Status`: `SIGNED OFF (ACCEPT)` / `REJECTED` / `BLOCKED` / `NOT VERIFIED`. Never "ready to deploy".
 
 Do not call tests PASS without running them. Do not silently push, merge into `main`, publish, drop databases or change credentials.
