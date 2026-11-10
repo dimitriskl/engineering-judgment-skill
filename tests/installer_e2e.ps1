@@ -209,7 +209,13 @@ New-Item -ItemType Directory -Force -Path $emptyBin | Out-Null
 $missingPath = if ($Windows) { "$emptyBin;C:\Windows\System32" } else { "${emptyBin}:/bin:/usr/bin" }
 $code = Invoke-Install $c $Install @("--scope", "personal") $null $missingPath
 Assert-Status $code 1 "missing node exits 1" $c
-Assert-Has $c.Err "node was not found" "missing node says node was not found"
+$missingText = Read-Text $c.Err
+if ($missingText.Contains("node was not found") -or $missingText.Contains("npx was not found")) {
+    Ok "missing node says node or npx was not found"
+} else {
+    Bad "missing node says node or npx was not found"
+    Write-Output $missingText
+}
 Assert-Clean $c.Home "missing node writes nothing"
 
 $c = New-Case

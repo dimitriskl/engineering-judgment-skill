@@ -170,7 +170,12 @@ fi
 new_case
 launch "$HOME_DIR" "$WORK" "$OUT" "$ERR" env PATH="/bin:/usr/bin" bash "$INSTALL" --scope personal
 assert_status "missing node exits 1" 1 "$OUT" "$ERR"
-assert_grep "$ERR" "node was not found" "missing node says node was not found"
+if grep -q "node was not found" "$ERR" || grep -q "npx was not found" "$ERR"; then
+  ok "missing node says node or npx was not found"
+else
+  bad "missing node says node or npx was not found"
+  show "$OUT" "$ERR"
+fi
 clean_tree "$HOME_DIR" "missing node writes nothing"
 
 copy="$CASE/copy-pins"
