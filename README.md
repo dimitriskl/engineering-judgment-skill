@@ -315,7 +315,9 @@ Each repository's README shows how to install the agent for one project (`.claud
 | `qa` | sonnet · low | gpt-6.1-terra · low | Runs the listed checks against written acceptance criteria |
 
 - **Change one run** without editing the file: start your prompt with a line such as `reviewer: opus high`.
-- **Leave a value out** (or empty) and that agent uses your session's model or effort. If the Codex or Claude `model` is empty, the orchestrator asks you once which models to use (pick them from `/model`), writes them into the file and shows you the change.
+- **Change saved choices:** ask the orchestrator to change the models, or edit the role's `model.claude` or `model.codex` value in `.engineering-workflow.json`. Existing choices stay in place until you request a change.
+- **Leave a value out** (or empty) and that agent uses your session's model or effort. If the Codex or Claude `model` is empty, the orchestrator asks you which models to use, writes them into the file and shows you the change.
+- **Claude Code choices:** choose an available agent-tool alias: `fable`, `opus`, `sonnet`, or `haiku`. Anthropic currently lists Fable 5.2 and Opus, Sonnet, and Haiku 5.5 in its [model overview](https://platform.claude.com/docs/en/models/overview). The Agent tool takes aliases, not full model IDs, for individual subagent calls; an alias does not guarantee an exact version. Availability and resolution depend on your account and provider; see [Claude Code subagent model selection](https://code.claude.com/docs/en/sub-agents#choose-a-model).
 - **Model names change.** If a name is rejected, the agent runs on your session's model and the status line says so. Check `/model` in your tool for the current names.
 - **Settings that win over the file:** in Claude Code, the `CLAUDE_CODE_EFFORT_LEVEL` and `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` environment variables; in Codex, a `model` line inside an agent's own `.toml` file (the agents above have none). The orchestrator warns you if one is set.
 - The orchestrator itself is your main session, so its model is the one you choose when you start (`/model`). It only reads the board, so a mid-level model is usually enough.
