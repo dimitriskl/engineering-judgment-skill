@@ -66,6 +66,131 @@ require_curl() {
 Nothing was installed. Rerunning is safe."
 }
 
+urlencode() {
+  # Percent-encode every byte except RFC 3986 unreserved characters.
+  s="$1"
+  out=""
+  i=0
+  while [ "$i" -lt "${#s}" ]; do
+    c="${s:$i:1}"
+    case "$c" in
+      [A-Za-z0-9._~-]) out="${out}${c}" ;;
+      *)
+        printf -v hex '%%%02X' "'$c"
+        out="${out}${hex}"
+        ;;
+    esac
+    i=$((i + 1))
+  done
+  printf '%s' "$out"
+}
+
+resolve_hub_ref_api() {
+  ref="$1"
+  require_curl
+  encoded="$(urlencode "$ref")"
+  body="$(mktemp)"
+  url="https://api.github.com/repos/${OWNER}/engineering-judgment-skill/commits/${encoded}"
+  if ! curl -fsSL --connect-timeout 15 --max-time 60 \
+      -H "Accept: application/vnd.github+json" \
+      -H "User-Agent: engineering-judgment-install" \
+      -o "$body" "$url"; then
+    rm -f "$body"
+    die 1 "Could not resolve hub ref '${ref}'.
+Pass a tag or a 40-character commit SHA.
+Nothing was installed. Rerunning is safe."
+  fi
+  sha="$(awk -F'"' '/"sha":/ { print $4; exit }' "$body")"
+  rm -f "$body"
+  if printf '%s\n' "$sha" | grep -Eq '^[0-9a-fA-F]{40}$'; then
+    printf '%s\n' "$sha"
+    return 0
+  fi
+  die 1 "Could not resolve hub ref '${ref}'.
+Pass a tag or a 40-character commit SHA.
+Nothing was installed. Rerunning is safe."
+}
+
+# A branch or tag becomes the commit SHA before any URL is built. A 40-character
+# SHA is kept as given. Slash branches otherwise look like a branch plus a path
+# to the skills CLI (it would clone the branch named before the first slash).
+resolve_hub_ref() {
+  ref="$1"
+  if printf '%s\n' "$ref" | grep -Eq '^[0-9a-fA-F]{40}$'; then
+    printf '%s\n' "$ref"
+    return 0
+  fi
+  case "$ref" in
+    *[!A-Za-z0-9._/-]*|/*|*/|*//*|..|../*|*/..|*/../*)
+      die 1 "Hub ref '${ref}' is not a full commit SHA, tag, or branch name.
+Pass a tag or a 40-character commit SHA.
+Nothing was installed. Rerunning is safe."
+      ;;
+  esac
+  if ! command -v git >/dev/null 2>&1; then
+    resolve_hub_ref_api "$ref"
+    return 0
+  fi
+  remote="https://github.com/${OWNER}/engineering-judgment-skill.git"
+  set +e
+  listing="$(git ls-remote "$remote" "refs/heads/${ref}" "refs/tags/${ref}" "refs/tags/${ref}^{}" 2>&1)"
+  status=$?
+  set -e
+  if [ "$status" -ne 0 ]; then
+    die 1 "Could not resolve hub ref '${ref}'.
+${listing}
+Pass a tag or a 40-character commit SHA.
+Nothing was installed. Rerunning is safe."
+  fi
+  branch_sha=""
+  tag_sha=""
+  peeled=""
+  while IFS="$(printf '\t')" read -r sha name; do
+    [ -z "${sha:-}" ] && continue
+    case "$name" in
+      "refs/heads/${ref}") branch_sha="$sha" ;;
+      "refs/tags/${ref}") tag_sha="$sha" ;;
+      "refs/tags/${ref}^{}") peeled="$sha" ;;
+    esac
+  done <<EOF
+$listing
+EOF
+  tag_commit="$tag_sha"
+  if [ -n "$peeled" ]; then tag_commit="$peeled"; fi
+  if [ -n "$branch_sha" ] && [ -n "$tag_commit" ] && [ "$branch_sha" != "$tag_commit" ]; then
+    die 1 "Hub ref '${ref}' matches both a branch (${branch_sha}) and a tag (${tag_commit}).
+Pass the full commit SHA you want.
+Nothing was installed. Rerunning is safe."
+  fi
+  if [ -n "$tag_commit" ]; then
+    printf '%s\n' "$tag_commit"
+    return 0
+  fi
+  if [ -n "$branch_sha" ]; then
+    printf '%s\n' "$branch_sha"
+    return 0
+  fi
+  die 1 "Could not resolve hub ref '${ref}'. It is not a branch or tag on https://github.com/${OWNER}/engineering-judgment-skill.
+Pass a tag or a 40-character commit SHA.
+Nothing was installed. Rerunning is safe."
+}
+
+# The skills CLI checks the skill out with git. Force LF so a Windows
+# core.autocrlf=true setting does not change the installed bytes.
+use_lf_checkout() {
+  idx="${GIT_CONFIG_COUNT:-0}"
+  case "$idx" in
+    ''|*[!0-9]*) idx=0 ;;
+  esac
+  export "GIT_CONFIG_KEY_${idx}=core.autocrlf"
+  export "GIT_CONFIG_VALUE_${idx}=false"
+  idx=$((idx + 1))
+  export "GIT_CONFIG_KEY_${idx}=core.eol"
+  export "GIT_CONFIG_VALUE_${idx}=lf"
+  idx=$((idx + 1))
+  export GIT_CONFIG_COUNT="$idx"
+}
+
 download() {
   url="$1"
   dest="$2"
@@ -191,6 +316,11 @@ fi
 
 workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
+
+ORIGINAL_REF="$REF_OVERRIDE"
+if [ -n "$REF_OVERRIDE" ]; then
+  REF_OVERRIDE="$(resolve_hub_ref "$REF_OVERRIDE")"
+fi
 
 pins_file=""
 agents_file=""
@@ -374,7 +504,11 @@ esac
 
 if [ -n "$REF_OVERRIDE" ]; then
   HUB_REF="$REF_OVERRIDE"
-  echo "Hub: ${HUB_NAME} @ ${HUB_REF} (--ref override; pin file says ${HUB_SHA})"
+  if [ "$ORIGINAL_REF" = "$REF_OVERRIDE" ]; then
+    echo "Hub: ${HUB_NAME} @ ${HUB_REF} (--ref override; pin file says ${HUB_SHA})"
+  else
+    echo "Hub: ${HUB_NAME} @ ${HUB_REF} (--ref ${ORIGINAL_REF} resolved; pin file says ${HUB_SHA})"
+  fi
 else
   HUB_REF="$HUB_SHA"
   echo "Hub: ${HUB_NAME} @ ${HUB_REF}"
@@ -401,6 +535,7 @@ skill_url="https://github.com/${OWNER}/${HUB_NAME}/tree/${HUB_REF}"
 echo "Skill: engineering-judgment @ ${HUB_REF}"
 global_flag=""
 if [ "$SCOPE" = "personal" ]; then global_flag="-g"; fi
+use_lf_checkout
 set +e
 npx -y skills add "$skill_url" --skill engineering-judgment -a claude-code codex $global_flag -y </dev/null
 status=$?

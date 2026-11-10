@@ -144,6 +144,68 @@ if (-not $UserHome) {
     Fail "USERPROFILE or HOME must be set so the installer can find your user directory.`nNothing was installed. Rerunning is safe."
 }
 
+function Resolve-HubRef([string]$Ref) {
+    # A branch or tag becomes the commit SHA before any URL is built. A 40-character
+    # SHA is kept as given. Slash branches otherwise look like a branch plus a path
+    # to the skills CLI (it would clone the branch named before the first slash).
+    if ($Ref -match '^[0-9a-fA-F]{40}$') { return $Ref }
+    if ($Ref -notmatch '^[A-Za-z0-9._/-]+$' -or $Ref.StartsWith("/") -or $Ref.EndsWith("/") -or $Ref.Contains("//") -or $Ref.Contains("..")) {
+        Fail "Hub ref '$Ref' is not a full commit SHA, tag, or branch name.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+    }
+    $remote = "https://github.com/$Owner/engineering-judgment-skill.git"
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        $listing = & git ls-remote $remote "refs/heads/$Ref" "refs/tags/$Ref" "refs/tags/${Ref}^{}"
+        if ($LASTEXITCODE -ne 0) {
+            Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+        }
+        $branchSha = ""
+        $tagSha = ""
+        $peeled = ""
+        foreach ($line in @($listing)) {
+            $text = "$line".Trim()
+            if (-not $text) { continue }
+            $parts = $text -split "`t", 2
+            if ($parts.Count -lt 2) { continue }
+            $sha = $parts[0].Trim()
+            $name = $parts[1].Trim()
+            if ($name -eq "refs/heads/$Ref") { $branchSha = $sha }
+            elseif ($name -eq "refs/tags/$Ref") { $tagSha = $sha }
+            elseif ($name -eq "refs/tags/${Ref}^{}") { $peeled = $sha }
+        }
+        $tagCommit = $tagSha
+        if ($peeled) { $tagCommit = $peeled }
+        if ($branchSha -and $tagCommit -and $branchSha -ne $tagCommit) {
+            Fail "Hub ref '$Ref' matches both a branch ($branchSha) and a tag ($tagCommit).`nPass the full commit SHA you want.`nNothing was installed. Rerunning is safe."
+        }
+        if ($tagCommit) { return $tagCommit }
+        if ($branchSha) { return $branchSha }
+        Fail "Could not resolve hub ref '$Ref'. It is not a branch or tag on https://github.com/$Owner/engineering-judgment-skill.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+    }
+    $encoded = [Uri]::EscapeDataString($Ref)
+    $url = "https://api.github.com/repos/$Owner/engineering-judgment-skill/commits/$encoded"
+    try {
+        $resp = Invoke-RestMethod -Uri $url -Headers @{ Accept = "application/vnd.github+json"; "User-Agent" = "engineering-judgment-install" } -TimeoutSec 60
+    } catch {
+        Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+    }
+    $sha = "$($resp.sha)"
+    if ($sha -match '^[0-9a-fA-F]{40}$') { return $sha }
+    Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+}
+function Enable-LfCheckout {
+    # The skills CLI checks the skill out with git. Force LF so a Windows
+    # core.autocrlf=true setting does not change the installed bytes.
+    $idx = 0
+    if ($env:GIT_CONFIG_COUNT -match '^\d+$') { $idx = [int]$env:GIT_CONFIG_COUNT }
+    Set-Item -Path "Env:GIT_CONFIG_KEY_$idx" -Value "core.autocrlf"
+    Set-Item -Path "Env:GIT_CONFIG_VALUE_$idx" -Value "false"
+    $idx++
+    Set-Item -Path "Env:GIT_CONFIG_KEY_$idx" -Value "core.eol"
+    Set-Item -Path "Env:GIT_CONFIG_VALUE_$idx" -Value "lf"
+    $idx++
+    $env:GIT_CONFIG_COUNT = "$idx"
+}
+
 $ScriptDir = $null
 if ($PSCommandPath -and (Test-Path -LiteralPath $PSCommandPath)) {
     $ScriptDir = Split-Path -Parent $PSCommandPath
@@ -152,7 +214,9 @@ $Tmp = Join-Path ([IO.Path]::GetTempPath()) ("ej-" + [guid]::NewGuid().ToString(
 New-Item -ItemType Directory -Force -Path $Tmp | Out-Null
 $utf8 = New-Object System.Text.UTF8Encoding $false
 
+$OriginalRef = $RefOverride
 try {
+    if ($RefOverride) { $RefOverride = Resolve-HubRef $RefOverride }
     $pinsFile = $null
     $agentsFile = $null
     if ($env:EJ_PINS) {
@@ -282,7 +346,11 @@ try {
 
     if ($RefOverride) {
         $HubRef = $RefOverride
-        Write-Output "Hub: $HubName @ $HubRef (--ref override; pin file says $HubSha)"
+        if ($OriginalRef -eq $RefOverride) {
+            Write-Output "Hub: $HubName @ $HubRef (--ref override; pin file says $HubSha)"
+        } else {
+            Write-Output "Hub: $HubName @ $HubRef (--ref $OriginalRef resolved; pin file says $HubSha)"
+        }
     } else {
         $HubRef = $HubSha
         Write-Output "Hub: $HubName @ $HubRef"
@@ -310,6 +378,7 @@ try {
     $skillArgs = @("-y", "skills", "add", $skillUrl, "--skill", "engineering-judgment", "-a", "claude-code", "codex")
     if ($Scope -eq "personal") { $skillArgs += "-g" }
     $skillArgs += "-y"
+    Enable-LfCheckout
     & npx @skillArgs
     if ($LASTEXITCODE -ne 0) {
         Fail "Skill install failed (npx exit code $LASTEXITCODE).`nSource: $skillUrl`nNo agent files were written. Rerunning is safe."

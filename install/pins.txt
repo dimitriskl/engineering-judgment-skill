@@ -1,13 +1,8 @@
 # Pinned commits for install.sh and install.ps1. This is the only pin list.
 # Format: hub|agent <repository> <40-character commit SHA>
 # Owner of every repository: dimitriskl
-# Do not put a branch or a tag here. To try a hub branch, pass --ref or set EJ_REF.
-#
-# The hub SHA is main at the time of the 3.5.0 change. This commit cannot name
-# itself. After merge, set this SHA to the merge commit (that tree has the
-# 3.5.0 skill), commit the pin bump, and tag that bump v3.5.0. Tagging the
-# merge itself would still install the older skill. Agent SHAs are each repo's
-# main commit until its release PR merges; then set the SHA to that release commit.
+# Do not put a branch or a tag here. To try a hub branch or tag, pass --ref or set EJ_REF.
+# How to bump a pin and tag a release: CONTRIBUTING.md.
 
 hub engineering-judgment-skill 51c01a1b2cf9699747508c9c812893cbd82b8d20
 agent requirements-analyst aac401f0c1b3c1803b015d27ff20be8fdc652551

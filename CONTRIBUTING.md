@@ -32,3 +32,25 @@ Thanks for improving an open skill for engineering accountability.
 Be respectful and specific. Disagreement about architectural approaches is welcome; personal attacks are not. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 We welcome issue reports and PRs. Merging remains at the maintainers' discretion.
+
+## Changing pins and releasing
+
+Pins live in [`install/pins.txt`](install/pins.txt): one full 40-character commit SHA per line, not a branch or tag. Keep the names in [`install/agents.txt`](install/agents.txt) in sync. `EJ_PINS` selects another pins file and `EJ_RAW_ROOT` changes the raw download host, which is useful for testing.
+
+To release the hub, merge the change, then set the hub line in `install/pins.txt` to that merge commit, commit the pin bump, and tag **the pin-bump commit** (for example `v3.5.0`). A commit can't pin itself, so tagging the merge would still install the previous skill. Install from tag `v3.5.0` after that tag is created. The README commands use that tag and assume it already exists; do not point users at `main`. When an agent release merges, replace that agent's SHA with its release commit.
+
+`--ref` and `EJ_REF` accept a tag, a full commit SHA, or a branch. A branch or tag is resolved to a commit SHA before download, including a branch name that contains a slash. The user README recommends a tag or a full SHA.
+
+Check a pin change before you publish it:
+
+```bash
+python3 scripts/validate_skill.py
+bash tests/installer_e2e.sh          # Linux and macOS
+```
+
+```powershell
+python scripts/validate_skill.py
+pwsh -File tests/installer_e2e.ps1   # Windows, PowerShell 5.1 or 7
+```
+
+Both need network access to the pinned commits and Node.js 22.20 or later.

@@ -17,59 +17,40 @@ AI coding agents can write a feature in minutes. That does **not** mean the team
 
 ## 30-second start
 
-**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project directory. Node.js 22.20 or later is required. The installer checks `node -v` first and stops, with a link to [nodejs.org](https://nodejs.org), when Node is missing or older.
-
-Install from tag `v3.5.0` after that tag is created. Do not install from `main`.
+**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project folder. Node.js 22.20 or later is required; the installer checks this first and stops with a link to [nodejs.org](https://nodejs.org) if Node is missing or older.
 
 ```bash
-git clone https://github.com/dimitriskl/engineering-judgment-skill.git
-cd engineering-judgment-skill
-git checkout v3.5.0
-bash install/install.sh
-```
-
-```powershell
-pwsh -File install/install.ps1
-```
-
-From a pipe, pass the same ref so the script can read `install/pins.txt`:
-
-```bash
+# Linux and macOS
 curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/install.sh | bash -s -- --ref v3.5.0
 ```
 
 ```powershell
+# Windows (PowerShell)
 $env:EJ_REF = 'v3.5.0'
 irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/install.ps1 | iex
 ```
 
-Pins live in [`install/pins.txt`](install/pins.txt). Agent files are fetched at those full commit SHAs. Unless you pass `--ref` or set `EJ_REF`, the skill and `.engineering-workflow.json` are fetched at the hub SHA in that file too. The hub line is still `51c01a1b2cf9699747508c9c812893cbd82b8d20` (main when this change was written). After merge, set that line to the merge commit, commit the pin bump, and tag that bump `v3.5.0`. Tagging the merge itself would still install the older skill. Each agent line is that repo's main commit until its release PR merges; then replace the SHA. To change a pin, edit `install/pins.txt` (40-character SHA, not a branch or tag), keep the same names in [`install/agents.txt`](install/agents.txt), and rerun the checks below. `EJ_PINS` selects another pins file. `EJ_RAW_ROOT` changes the raw download host.
+Prefer to read the script first? Clone the tag anywhere, then run it **from your project folder**:
+
+```bash
+git clone --branch v3.5.0 https://github.com/dimitriskl/engineering-judgment-skill.git ~/src/engineering-judgment-skill
+cd /path/to/your/project
+bash ~/src/engineering-judgment-skill/install/install.sh      # or: pwsh -File ~/src/engineering-judgment-skill/install/install.ps1
+```
+
+Every install is reproducible: the skill and each agent are fetched at the commit SHAs listed in [`install/pins.txt`](install/pins.txt), never from `main`. Use a tag or a full commit SHA with `--ref`.
 
 - **First run** asks once: **personal** (all your projects: `~/.agents`, `~/.claude`, `~/.codex`) or **project** (only the current folder). With no terminal, personal is the default.
 - **Personal scope is remembered for your user** (`~/.engineering-judgment/install-scope`). **Project scope is remembered only in that folder** (`<project>/.engineering-judgment/install-scope`). A project install does not affect later runs in other folders.
-- **Later runs** reuse the remembered scope and update what is already installed. A changed agent file is replaced and the previous copy is kept as `<file>.bak-YYYYMMDD-HHMMSS`. Older backups stay. To choose again: `--scope personal` or `--scope project` (bash: `bash install/install.sh --scope project`; PowerShell: `--scope project` or `$env:EJ_SCOPE`).
+- **Later runs** reuse the remembered scope and update what is already installed. A changed agent file is replaced and the previous copy is kept as `<file>.bak-YYYYMMDD-HHMMSS` (UTC). Older backups stay. To choose again: `--scope personal` or `--scope project` (bash: `bash install/install.sh --scope project`; PowerShell: `--scope project` or `$env:EJ_SCOPE`).
 - Every remote file is downloaded before anything is written. If a download fails, the installer names the file and URL, writes nothing, and says that rerunning is safe.
 - In project scope it adds `.engineering-workflow.json` when the folder has none. Commit that file to share the agent map. `.agents/`, `.claude/`, `.codex/`, `.engineering-judgment/`, and the skills lock are local tool state.
 - It also sets **auto-compact at 40%** (below) if you haven't set it yourself.
 
-Check a pin change before you publish it:
+Only want the skill?
 
 ```bash
-python3 scripts/validate_skill.py
-bash tests/installer_e2e.sh
-```
-
-```powershell
-python scripts/validate_skill.py
-pwsh -File tests/installer_e2e.ps1
-```
-
-The bash tests run on Linux and macOS. The PowerShell tests run on Windows (PowerShell 5.1 or 7). Both need network access to the pinned commits and Node.js 22.20 or later.
-
-Only want the skill? Use the hub SHA from `install/pins.txt`:
-
-```bash
-npx skills add https://github.com/dimitriskl/engineering-judgment-skill/tree/51c01a1b2cf9699747508c9c812893cbd82b8d20 --skill engineering-judgment
+npx skills add https://github.com/dimitriskl/engineering-judgment-skill/tree/v3.5.0 --skill engineering-judgment
 ```
 
 Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
@@ -411,7 +392,7 @@ irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5
 curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/update.sh | bash -s -- --ref v3.5.0
 ```
 
-From a checkout of that tag, `bash install/update.sh` or `pwsh -File install/update.ps1` does the same thing. The updater runs the installer again and reuses the saved personal scope, or the project scope remembered in the current folder. To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `--scope project`. Changed agent files are backed up as `<file>.bak-YYYYMMDD-HHMMSS` and older backups are kept. Existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
+From a checkout of that tag, run `bash install/update.sh` or `pwsh -File install/update.ps1` **from your project folder**, not from the skill checkout. The updater runs the installer again and reuses the saved personal scope, or the project scope remembered in the current folder. If you used project scope before 3.5.0, that choice was saved for every folder; run once with `--scope project` in the project you want (or `--scope personal`). To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `--scope project`. Changed agent files are backed up as `<file>.bak-YYYYMMDD-HHMMSS` (UTC) and older backups are kept. Existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
 
 **Installed with `npx skills`** (Node.js 22.20 or later):
 
@@ -464,6 +445,8 @@ Use the same skills folder you installed to (`.agents/skills/`, `.claude/skills/
 See [a real-world-style walkthrough](examples/live-session.md) and the [skill source](skills/engineering-judgment/SKILL.md).
 
 ## Contributing
+
+Installer tests: `bash tests/installer_e2e.sh` and `pwsh -File tests/installer_e2e.ps1`. Pin and release steps are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Bug reports, false-positive reviews, missing risk checks, documentation fixes, and integrations for other stacks are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md). Especially valuable: **reproducible examples where the skill made a bad engineering call**.
 

@@ -54,7 +54,7 @@ param(
 $ErrorActionPreference = "Continue"
 $env:HOME = $HomeDir
 $env:USERPROFILE = $HomeDir
-foreach ($name in @("EJ_SCOPE", "EJ_REF", "EJ_PINS", "EJ_RAW", "EJ_RAW_ROOT", "EJ_NODE_MARKER")) {
+foreach ($name in @("EJ_SCOPE", "EJ_REF", "EJ_PINS", "EJ_RAW", "EJ_RAW_ROOT", "EJ_NODE_MARKER", "EJ_GIT_LOG")) {
     Remove-Item -Path "Env:$name" -ErrorAction SilentlyContinue
 }
 if ($env:EJ_EXTRA_ENV -and (Test-Path -LiteralPath $env:EJ_EXTRA_ENV)) {
@@ -280,6 +280,135 @@ Assert-Has $c.Err "Failed to download requirements-analyst .claude/agents/requir
 Assert-Has $c.Err "127.0.0.1" "network failure prints the URL"
 Assert-Has $c.Err "Nothing was installed. Rerunning is safe." "network failure says rerunning is safe"
 Assert-Clean $c.Home "network failure writes nothing"
+
+function New-GitShim([string]$Dir) {
+    New-Item -ItemType Directory -Force -Path $Dir | Out-Null
+    $body = @'
+#!/bin/sh
+printf '%s\n' "$*" > "${EJ_GIT_LOG:?}"
+if [ "${1:-}" != "ls-remote" ]; then
+  printf '%s\n' "unexpected git $*" >> "$EJ_GIT_LOG"
+  exit 1
+fi
+case "$*" in
+  *refs/heads/cursor/feature*)
+    printf '%s\t%s\n' "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" "refs/heads/cursor/feature"
+    ;;
+  *refs/tags/v9.9.9*)
+    printf '%s\t%s\n' "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" "refs/tags/v9.9.9"
+    printf '%s\t%s\n' "cccccccccccccccccccccccccccccccccccccccc" "refs/tags/v9.9.9^{}"
+    ;;
+  *refs/heads/both-ej*)
+    printf '%s\t%s\n' "dddddddddddddddddddddddddddddddddddddddd" "refs/heads/both-ej"
+    printf '%s\t%s\n' "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee" "refs/tags/both-ej"
+    ;;
+esac
+exit 0
+'@
+    if ($Windows) {
+        $py = Join-Path $Dir "git-shim.py"
+        @'
+import os, sys
+log = os.environ["EJ_GIT_LOG"]
+args = " ".join(sys.argv)
+with open(log, "w", encoding="utf-8") as fh:
+    fh.write(args + "\n")
+if len(sys.argv) < 2 or sys.argv[1] != "ls-remote":
+    sys.exit(1)
+if "refs/heads/cursor/feature" in args:
+    sys.stdout.write("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\trefs/heads/cursor/feature\n")
+elif "refs/tags/v9.9.9" in args:
+    sys.stdout.write("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\trefs/tags/v9.9.9\n")
+    sys.stdout.write("cccccccccccccccccccccccccccccccccccccccc\trefs/tags/v9.9.9^{}\n")
+elif "refs/heads/both-ej" in args:
+    sys.stdout.write("dddddddddddddddddddddddddddddddddddddddd\trefs/heads/both-ej\n")
+    sys.stdout.write("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\trefs/tags/both-ej\n")
+sys.exit(0)
+'@ | Set-Content -LiteralPath $py -Encoding ASCII
+        @"
+@echo off
+py -3 "%~dp0git-shim.py" %*
+"@ | Set-Content -LiteralPath (Join-Path $Dir "git.cmd") -Encoding ASCII
+    } else {
+        $body | Set-Content -LiteralPath (Join-Path $Dir "git") -Encoding ASCII
+        & chmod +x (Join-Path $Dir "git")
+    }
+}
+
+$c = New-Case
+$shim = Join-Path $c.Case "git-shim"
+New-GitShim $shim
+$gitLog = Join-Path $c.Case "git.log"
+$shimPath = $shim + $sep + $OrigPath
+$code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "cursor/feature") @{ EJ_RAW_ROOT = "http://127.0.0.1:9"; EJ_GIT_LOG = $gitLog } $shimPath
+Assert-Status $code 1 "slash branch ref exits 1 before install" $c
+Assert-Has $c.Out "Hub: engineering-judgment-skill @ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (--ref cursor/feature resolved" "slash branch resolves to the commit SHA"
+Assert-Has $gitLog "refs/heads/cursor/feature" "slash branch asks git for the full branch ref"
+Assert-Has $gitLog "refs/tags/cursor/feature^{}" "slash branch also asks git for a peeled tag"
+Assert-Lacks $c.Out "Skill: engineering-judgment" "slash branch stops before npx"
+Assert-Lacks $c.Err "Remote branch cursor" "slash branch does not clone the name before the slash"
+Assert-Clean $c.Home "slash branch writes nothing"
+
+$c = New-Case
+New-GitShim (Join-Path $c.Case "git-shim")
+$code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "v9.9.9") @{ EJ_RAW_ROOT = "http://127.0.0.1:9"; EJ_GIT_LOG = (Join-Path $c.Case "git.log") } ((Join-Path $c.Case "git-shim") + $sep + $OrigPath)
+Assert-Status $code 1 "annotated tag ref exits 1 before install" $c
+Assert-Has $c.Out "Hub: engineering-judgment-skill @ cccccccccccccccccccccccccccccccccccccccc (--ref v9.9.9 resolved" "annotated tag uses the peeled commit"
+Assert-Lacks $c.Out "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" "annotated tag does not use the tag object"
+
+$c = New-Case
+New-GitShim (Join-Path $c.Case "git-shim")
+$code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "both-ej") @{ EJ_GIT_LOG = (Join-Path $c.Case "git.log") } ((Join-Path $c.Case "git-shim") + $sep + $OrigPath)
+Assert-Status $code 1 "ambiguous ref exits 1" $c
+Assert-Has $c.Err "matches both a branch" "ambiguous ref names the collision"
+Assert-Has $c.Err "Nothing was installed. Rerunning is safe." "ambiguous ref says rerunning is safe"
+Assert-Clean $c.Home "ambiguous ref writes nothing"
+
+$c = New-Case
+New-GitShim (Join-Path $c.Case "git-shim")
+$code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "missing-ej-ref") @{ EJ_GIT_LOG = (Join-Path $c.Case "git.log") } ((Join-Path $c.Case "git-shim") + $sep + $OrigPath)
+Assert-Status $code 1 "unknown ref exits 1" $c
+Assert-Has $c.Err "Could not resolve hub ref 'missing-ej-ref'" "unknown ref is named"
+Assert-Clean $c.Home "unknown ref writes nothing"
+
+$c = New-Case
+$shaShim = Join-Path $c.Case "git-shim"
+New-Item -ItemType Directory -Force -Path $shaShim | Out-Null
+$shaLog = Join-Path $c.Case "git.log"
+if ($Windows) {
+    @'
+@echo off
+echo %*>>"%EJ_GIT_LOG%"
+exit /b 1
+'@ | Set-Content -LiteralPath (Join-Path $shaShim "git.cmd") -Encoding ASCII
+} else {
+    @'
+#!/bin/sh
+printf '%s\n' "$*" > "${EJ_GIT_LOG:?}"
+exit 1
+'@ | Set-Content -LiteralPath (Join-Path $shaShim "git") -Encoding ASCII
+    & chmod +x (Join-Path $shaShim "git")
+}
+$code = Invoke-Install $c $Install @("--scope", "personal", "--ref", $Hub) @{ EJ_RAW_ROOT = "http://127.0.0.1:9"; EJ_GIT_LOG = $shaLog } ($shaShim + $sep + $OrigPath)
+Assert-Status $code 1 "full SHA ref exits 1 before install" $c
+Assert-Has $c.Out "Hub: engineering-judgment-skill @ $Hub (--ref override" "full SHA is used unchanged"
+if (Test-Path -LiteralPath $shaLog) { Bad "full SHA ref called git"; Write-Output (Read-Text $shaLog) } else { Ok "full SHA ref does not ask git to resolve it" }
+Assert-Clean $c.Home "full SHA ref writes nothing"
+
+$remoteBranch = "cursor/reproducible-installs-3628"
+$remoteLines = @( & git ls-remote "https://github.com/dimitriskl/engineering-judgment-skill.git" "refs/heads/$remoteBranch" 2>$null )
+$remoteSha = ""
+if ($LASTEXITCODE -eq 0 -and $remoteLines.Count -gt 0) { $remoteSha = ("$($remoteLines[0])" -split "\s+", 2)[0].Trim() }
+if ($remoteSha -match '^[0-9a-fA-F]{40}$') {
+    $c = New-Case
+    $code = Invoke-Install $c $Install @("--scope", "personal", "--ref", $remoteBranch) @{ EJ_RAW_ROOT = "http://127.0.0.1:9" }
+    Assert-Status $code 1 "live slash branch exits 1 before install" $c
+    Assert-Has $c.Out "Hub: engineering-judgment-skill @ $remoteSha (--ref $remoteBranch resolved" "live slash branch matches git ls-remote"
+    Assert-Lacks $c.Err "Remote branch cursor" "live slash branch does not clone the short name"
+    Assert-Clean $c.Home "live slash branch writes nothing"
+} else {
+    Write-Output "SKIP: refs/heads/$remoteBranch is not on origin"
+}
 
 $c = New-Case
 $utf8 = New-Object System.Text.UTF8Encoding $false
