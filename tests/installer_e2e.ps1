@@ -528,4 +528,7 @@ Assert-Clean $projB "another folder receives no project files"
 
 Write-Output ""
 Write-Output "$($script:Passes) passed, $($script:Fails) failed"
+# pwsh -Command, which is how Actions runs this file, keeps the last native
+# exit code. The final case expects the installer to exit 1, so exit explicitly.
 if ($script:Fails -ne 0) { exit 1 }
+exit 0
