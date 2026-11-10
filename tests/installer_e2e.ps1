@@ -344,7 +344,14 @@ $code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "cursor/fea
 Assert-Status $code 1 "slash branch ref exits 1 before install" $c
 Assert-Has $c.Out "Hub: engineering-judgment-skill @ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (--ref cursor/feature resolved" "slash branch resolves to the commit SHA"
 Assert-Has $gitLog "refs/heads/cursor/feature" "slash branch asks git for the full branch ref"
-Assert-Has $gitLog "refs/tags/cursor/feature^{}" "slash branch also asks git for a peeled tag"
+$peelLog = Read-Text $gitLog
+# cmd.exe treats ^ as an escape, so a git.cmd shim records refs/tags/name{} for the peeled pattern.
+if ($peelLog.Contains("refs/tags/cursor/feature^{}") -or $peelLog.Contains("refs/tags/cursor/feature{}")) {
+    Ok "slash branch also asks git for a peeled tag"
+} else {
+    Bad "slash branch also asks git for a peeled tag"
+    Write-Output $peelLog
+}
 Assert-Lacks $c.Out "Skill: engineering-judgment" "slash branch stops before npx"
 Assert-Lacks $c.Err "Remote branch cursor" "slash branch does not clone the name before the slash"
 Assert-Clean $c.Home "slash branch writes nothing"
