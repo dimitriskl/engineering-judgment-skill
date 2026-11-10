@@ -1,4 +1,4 @@
-# MyDevFactory
+# Engineering Judgment Skill
 
 Walkthroughs begin with a plain-language explanation of the approach and a code map showing the files, classes and methods involved. Interfaces that support diagrams can also show a visual flow.
 
@@ -11,30 +11,66 @@ For a PR or Ship handoff, the workflow summarizes merge risk across verification
 
 AI coding agents can write a feature in minutes. That does **not** mean the team understands its trade-offs, its failure modes, or what the green checks actually prove.
 
-**MyDevFactory** is one portable [Agent Skill](https://agentskills.io/specification) that adds *intent, risk-aware orchestration, verification evidence, and accountable handoff* to your existing coding workflow. It still lets your agent write the code. It just helps you know what you are shipping.
+**Engineering Judgment** is one portable [Agent Skill](https://agentskills.io/specification) that adds *intent, risk-aware orchestration, verification evidence, and accountable handoff* to your existing coding workflow. It still lets your agent write the code. It just helps you know what you are shipping.
 
 > **The gap:** more code generated than engineers can meaningfully review. The goal is **verified value per minute**, not the maximum number of generated lines.
 
 ## 30-second start
 
-**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project directory (Node.js 22.20 or later required):
+**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project directory. Node.js 22.20 or later is required. The installer checks `node -v` first and stops, with a link to [nodejs.org](https://nodejs.org), when Node is missing or older.
 
-```powershell
-# Windows (PowerShell)
-irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.ps1 | iex
-```
+Install from tag `v3.5.0` after that tag is created. Do not install from `main`.
 
 ```bash
-# Linux and macOS
-curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.sh | bash
+git clone https://github.com/dimitriskl/engineering-judgment-skill.git
+cd engineering-judgment-skill
+git checkout v3.5.0
+bash install/install.sh
 ```
 
-- **First run** asks once: **personal** (all your projects: `~/.claude`, `~/.codex`) or **project** (only the current folder).
-- **Later runs** reuse that answer and **update** whatever is already installed. Changed agent files are replaced, and your old copy is kept as `<file>.bak`. To change the answer, run with `--scope personal|project` (bash: `… | bash -s -- --scope project`) or set `$env:EJ_SCOPE` (PowerShell).
-- It also sets **auto-compact at 40%** (below) if you haven't set it yourself, and in project scope adds `.engineering-workflow.json` if the project has none.
-- The agent list lives in [`install/agents.txt`](install/agents.txt).
+```powershell
+pwsh -File install/install.ps1
+```
 
-Only want the skill? `npx skills add dimitriskl/mydevfactory --skill mydevfactory`, then choose your coding agent when prompted.
+From a pipe, pass the same ref so the script can read `install/pins.txt`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/install.sh | bash -s -- --ref v3.5.0
+```
+
+```powershell
+$env:EJ_REF = 'v3.5.0'
+irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/install.ps1 | iex
+```
+
+Pins live in [`install/pins.txt`](install/pins.txt). Agent files are fetched at those full commit SHAs. Unless you pass `--ref` or set `EJ_REF`, the skill and `.engineering-workflow.json` are fetched at the hub SHA in that file too. The hub line is still `51c01a1b2cf9699747508c9c812893cbd82b8d20` (main when this change was written). After merge, set that line to the merge commit, commit the pin bump, and tag that bump `v3.5.0`. Tagging the merge itself would still install the older skill. Each agent line is that repo's main commit until its release PR merges; then replace the SHA. To change a pin, edit `install/pins.txt` (40-character SHA, not a branch or tag), keep the same names in [`install/agents.txt`](install/agents.txt), and rerun the checks below. `EJ_PINS` selects another pins file. `EJ_RAW_ROOT` changes the raw download host.
+
+- **First run** asks once: **personal** (all your projects: `~/.agents`, `~/.claude`, `~/.codex`) or **project** (only the current folder). With no terminal, personal is the default.
+- **Personal scope is remembered for your user** (`~/.engineering-judgment/install-scope`). **Project scope is remembered only in that folder** (`<project>/.engineering-judgment/install-scope`). A project install does not affect later runs in other folders.
+- **Later runs** reuse the remembered scope and update what is already installed. A changed agent file is replaced and the previous copy is kept as `<file>.bak-YYYYMMDD-HHMMSS`. Older backups stay. To choose again: `--scope personal` or `--scope project` (bash: `bash install/install.sh --scope project`; PowerShell: `--scope project` or `$env:EJ_SCOPE`).
+- Every remote file is downloaded before anything is written. If a download fails, the installer names the file and URL, writes nothing, and says that rerunning is safe.
+- In project scope it adds `.engineering-workflow.json` when the folder has none. Commit that file to share the agent map. `.agents/`, `.claude/`, `.codex/`, `.engineering-judgment/`, and the skills lock are local tool state.
+- It also sets **auto-compact at 40%** (below) if you haven't set it yourself.
+
+Check a pin change before you publish it:
+
+```bash
+python3 scripts/validate_skill.py
+bash tests/installer_e2e.sh
+```
+
+```powershell
+python scripts/validate_skill.py
+pwsh -File tests/installer_e2e.ps1
+```
+
+The bash tests run on Linux and macOS. The PowerShell tests run on Windows (PowerShell 5.1 or 7). Both need network access to the pinned commits and Node.js 22.20 or later.
+
+Only want the skill? Use the hub SHA from `install/pins.txt`:
+
+```bash
+npx skills add https://github.com/dimitriskl/engineering-judgment-skill/tree/51c01a1b2cf9699747508c9c812893cbd82b8d20 --skill engineering-judgment
+```
 
 Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
 
@@ -53,7 +89,7 @@ model_auto_compact_token_limit = 160000
 **1. Start the feature:**
 
 ```text
-Use mydevfactory in Full feature mode.
+Use engineering-judgment in Full feature mode.
 Add two-factor authentication (2FA) to login: after the password, the user enters a 6-digit code from an authenticator app.
 Ask me only what is unclear, then finish with the Walkthrough so I can walk through the changes and sign off.
 ```
@@ -124,7 +160,7 @@ Step 2/7 · src/Auth/TwoFactorService.cs:40-58
 
 For an L2 slice, the separate slice sign-off can be accepted while other slices are still unfinished, provided that slice is Completed and has no open change requests. Afterward, the orchestrator identifies the next ready slice and continues if already authorized, or asks whether to continue. `approve all` skips walkthrough cards; it does not itself accept the sign-off. When the requested work is finished, the handoff says so explicitly.
 
-If you stop halfway, open a new session and continue from the files: `Use mydevfactory in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use mydevfactory in Walkthrough mode on prd/login-2fa.`
+If you stop halfway, open a new session and continue from the files: `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use engineering-judgment in Walkthrough mode on prd/login-2fa.`
 
 **What each agent does in this example:**
 
@@ -135,9 +171,7 @@ If you stop halfway, open a new session and continue from the files: `Use mydevf
 - 🟠 **reviewer**: reviews each slice for bugs and security gaps (secret handling, brute force, bypasses); FAIL sends it back to the developer.
 - 🟡 **qa**: checks every acceptance criterion (wrong code, expired code, lockout); PASS marks the slice Completed.
 
-Invoke the installed skill as `/mydevfactory` in Claude Code or `$mydevfactory` in Codex. Start a new session after installation so the agent discovers it.
-
-The CLI and agent availability vary by environment. **Installation does not guarantee auto-activation**. Explicitly invoke `mydevfactory` for consequential tasks.
+The CLI and agent availability vary by environment. **Installation does not guarantee auto-activation**. Explicitly invoke `engineering-judgment` for consequential tasks.
 
 ## What it does
 
@@ -178,12 +212,12 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 
 | Mode | When to use | Example |
 | --- | --- | --- |
-| **Auto** | Most development | `Use mydevfactory in Auto mode to add pagination.` |
-| **Full feature** | Ambiguous or cross-cutting work | `Use mydevfactory in Full feature mode to design and implement invoice approval.` |
-| **Fix + Deadline** | Production issue, limited time | `Use mydevfactory in Fix + Deadline mode. I have 30 minutes; fix this retry bug.` |
-| **Audit** | Existing PR/diff | `Use mydevfactory in Audit mode on my branch. What do passing tests miss?` |
-| **Walkthrough** (formerly Guide me) | See what was built, step by step, and sign off | `Use mydevfactory in Walkthrough mode on this branch.` |
-| **Drill** | Improve your own engineering judgment (the only mode with quiz questions) | `Use mydevfactory in Drill mode. Ask one question at a time about a real design decision.` |
+| **Auto** | Most development | `Use engineering-judgment in Auto mode to add pagination.` |
+| **Full feature** | Ambiguous or cross-cutting work | `Use engineering-judgment in Full feature mode to design and implement invoice approval.` |
+| **Fix + Deadline** | Production issue, limited time | `Use engineering-judgment in Fix + Deadline mode. I have 30 minutes; fix this retry bug.` |
+| **Audit** | Existing PR/diff | `Use engineering-judgment in Audit mode on my branch. What do passing tests miss?` |
+| **Walkthrough** (formerly Guide me) | See what was built, step by step, and sign off | `Use engineering-judgment in Walkthrough mode on this branch.` |
+| **Drill** | Improve your own engineering judgment (the only mode with quiz questions) | `Use engineering-judgment in Drill mode. Ask one question at a time about a real design decision.` |
 
 ### Who is working right now
 
@@ -332,55 +366,58 @@ The reviewer and QA write their verdicts into the slice file themselves, so they
 
 ## Manual installation (no Node required)
 
-Copy the *entire* [`skills/mydevfactory/`](skills/mydevfactory/) directory into **one** of these locations in your target project:
+Copy the *entire* [`skills/engineering-judgment/`](skills/engineering-judgment/) directory into **one** of these locations in your target project:
 
 | Client | Project-level destination |
 | --- | --- |
-| OpenAI Codex | `.agents/skills/mydevfactory/` |
-| Claude Code | `.claude/skills/mydevfactory/` |
-| GitHub Copilot in VS Code | `.github/skills/mydevfactory/` |
+| OpenAI Codex | `.agents/skills/engineering-judgment/` |
+| Claude Code | `.claude/skills/engineering-judgment/` |
+| GitHub Copilot in VS Code | `.github/skills/engineering-judgment/` |
 
 Example (macOS/Linux):
 
 ```bash
-git clone https://github.com/dimitriskl/mydevfactory.git
+git clone https://github.com/dimitriskl/engineering-judgment-skill.git
+git -C engineering-judgment-skill checkout v3.5.0
 mkdir -p YourProject/.agents/skills
-cp -R mydevfactory/skills/mydevfactory YourProject/.agents/skills/
+cp -R engineering-judgment-skill/skills/engineering-judgment YourProject/.agents/skills/
 ```
 
 Example (PowerShell):
 
 ```powershell
-git clone https://github.com/dimitriskl/mydevfactory.git
+git clone https://github.com/dimitriskl/engineering-judgment-skill.git
+git -C engineering-judgment-skill checkout v3.5.0
 New-Item -ItemType Directory -Force C:\src\YourProject\.claude\skills | Out-Null
-Copy-Item -Recurse .\mydevfactory\skills\mydevfactory C:\src\YourProject\.claude\skills\
+Copy-Item -Recurse .\engineering-judgment-skill\skills\engineering-judgment C:\src\YourProject\.claude\skills\
 ```
 
 Use the corresponding destination for your agent. Restart its session, then invoke the skill explicitly. Your existing agent definitions and third-party skills are not replaced.
 
-> **Migrating from an earlier version:** back up and remove the old `engineering-judgment` or `engineering-judgment-coach` skill folder from each installation location after installing `mydevfactory`, so the agent does not discover both versions. Existing installer scope settings are preserved.
+> **Migrating from the older "Engineering Judgment Coach":** back up/remove the old `engineering-judgment-coach` directory in your agent's skills folder to avoid duplicate or conflicting skill discovery. The new invocation name is `engineering-judgment`.
 
 ## Updating the skill
 
 Check [CHANGELOG.md](CHANGELOG.md) first. A new major version (for example 2.x → 3.0.0) can change how the skill works or what `.engineering-workflow.json` contains.
 
-**Update the skill and all agents together** (Node.js 22.20 or later):
+**Update the skill and all agents together** (Node.js 22.20 or later), from tag `v3.5.0`:
 
 ```powershell
-irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/update.ps1 | iex
+$env:EJ_REF = 'v3.5.0'
+irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/update.ps1 | iex
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/v3.5.0/install/update.sh | bash -s -- --ref v3.5.0
 ```
 
-The updater runs the installer again and reuses the saved personal or project scope. For a project install, run it from that project directory. To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `... | bash -s -- --scope project` in bash. Changed agent files are backed up as `<file>.bak`; existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
+From a checkout of that tag, `bash install/update.sh` or `pwsh -File install/update.ps1` does the same thing. The updater runs the installer again and reuses the saved personal scope, or the project scope remembered in the current folder. To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `--scope project`. Changed agent files are backed up as `<file>.bak-YYYYMMDD-HHMMSS` and older backups are kept. Existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
 
 **Installed with `npx skills`** (Node.js 22.20 or later):
 
 ```bash
 npx skills check                          # shows whether an update is available
-npx skills update mydevfactory    # updates a project install (run it in your project folder)
+npx skills update engineering-judgment    # updates a project install (run it in your project folder)
 npx skills update -g                      # updates global installs (e.g. ~/.agents/skills)
 ```
 
@@ -391,17 +428,19 @@ Run in a project folder, `update` may update only that project's skills. If you 
 macOS / Linux:
 
 ```bash
-cd mydevfactory && git pull && cd ..
-rm -rf YourProject/.agents/skills/mydevfactory
-cp -R mydevfactory/skills/mydevfactory YourProject/.agents/skills/
+git -C engineering-judgment-skill fetch --tags
+git -C engineering-judgment-skill checkout v3.5.0
+rm -rf YourProject/.agents/skills/engineering-judgment
+cp -R engineering-judgment-skill/skills/engineering-judgment YourProject/.agents/skills/
 ```
 
 PowerShell:
 
 ```powershell
-git -C .\mydevfactory pull
-Remove-Item -Recurse -Force C:\src\YourProject\.claude\skills\mydevfactory
-Copy-Item -Recurse .\mydevfactory\skills\mydevfactory C:\src\YourProject\.claude\skills\
+git -C .\engineering-judgment-skill fetch --tags
+git -C .\engineering-judgment-skill checkout v3.5.0
+Remove-Item -Recurse -Force C:\src\YourProject\.claude\skills\engineering-judgment
+Copy-Item -Recurse .\engineering-judgment-skill\skills\engineering-judgment C:\src\YourProject\.claude\skills\
 ```
 
 Use the same skills folder you installed to (`.agents/skills/`, `.claude/skills/` or `.github/skills/`).
@@ -422,7 +461,7 @@ Use the same skills folder you installed to (`.agents/skills/`, `.claude/skills/
 - It should not silently push, merge, deploy, modify production data, or make irreversible decisions.
 - Review third-party skills and repository instructions before enabling them, especially in untrusted repositories.
 
-See [a real-world-style walkthrough](examples/live-session.md) and the [skill source](skills/mydevfactory/SKILL.md).
+See [a real-world-style walkthrough](examples/live-session.md) and the [skill source](skills/engineering-judgment/SKILL.md).
 
 ## Contributing
 
