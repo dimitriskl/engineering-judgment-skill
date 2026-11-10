@@ -122,6 +122,8 @@ Step 2/7 · src/Auth/TwoFactorService.cs:40-58
 - **`approve all`** skips the rest; the sign-off honestly records which steps you didn't view.
 - **At the end** you see a one-screen summary: steps viewed, change requests, and **blind spots** (what the tests did not prove). Then you choose **ACCEPT** or **REJECT**. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is written into the PRD's `Developer sign-off` with your git name, the date and the commit, then the orchestrator offers the merge; you do it.
 
+For an L2 slice, the separate slice sign-off can be accepted while other slices are still unfinished, provided that slice is Completed and has no open change requests. Afterward, the orchestrator identifies the next ready slice and continues if already authorized, or asks whether to continue. `approve all` skips walkthrough cards; it does not itself accept the sign-off. When the requested work is finished, the handoff says so explicitly.
+
 If you stop halfway, open a new session and continue from the files: `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use engineering-judgment in Walkthrough mode on prd/login-2fa.`
 
 **What each agent does in this example:**

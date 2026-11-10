@@ -74,7 +74,7 @@ Wait for the developer after every card.
 - `tests` — show the key lines of each test for the current step (arrange, act, assert), then stay on it.
 - `ask …` — answer about the current step from the code and evidence, then stay on it.
 - `change …` — record in that step's slice file under `Change requests`: `Change request by <git user.name> · <date> · file:line · <what to do differently> · open`. The orchestrator changes `· open` to `· done (<commit sha>)` when that slice reaches `Completed` again. Mark the step `✎` and continue the walk. Do **not** dispatch anything yet.
-- `approve all` — skip the remaining steps and go to the summary. The sign-off records `approved without viewing steps N–M`. This is honest, not a penalty.
+- `approve all` — skip the remaining steps and go to the summary. The sign-off records `approved without viewing steps N–M`. This is honest, not a penalty. It does not itself mean ACCEPT; ask for a separate sign-off decision and wait for an unambiguous answer.
 
 When the walk ends, every slice with change requests goes back to its developer parts, following the transition table, then through review and QA again. The next Walkthrough shows **only the changed steps**.
 
@@ -95,4 +95,6 @@ After the last step (or `approve all`), show a one-screen summary: steps viewed,
 - Signed: <git user.name> · <date> · commit <sha>
 ```
 
-Sign-off can't be ACCEPT while any change request is still `· open`, or while any slice is not `Completed`. A later sign-off is appended as a new block; the latest block is the decision. `Signed:` names the reviewed HEAD commit. Merging into `main` is only **offered** after ACCEPT, and the developer does it.
+For a per-slice L2 sign-off, ACCEPT requires that slice to be `Completed` and have no open change requests; other slices may still be unfinished. Record the decision in that slice, without signing off the entire PRD. For the overall PRD sign-off, ACCEPT requires every slice to be `Completed` and no change request to be open. A later sign-off is appended as a new block; the latest block is the decision. `Signed:` names the reviewed HEAD commit. Merging into `main` is only **offered** after overall ACCEPT, and the developer does it.
+
+After recording a decision, make the next step explicit. On slice ACCEPT, state which slices remain and automatically continue with the next ready slice if the current request authorizes it; otherwise ask whether to continue. If the next work is blocked, explain the blocker and ask for the specific input needed. On overall ACCEPT, state that the requested implementation and sign-off are complete and offer the merge if applicable. On REJECT, ask what should happen next. For a standalone walkthrough without a board, state when the walkthrough is finished and identify any outstanding decision or action. Never end with a status-only recap when the user needs to act.

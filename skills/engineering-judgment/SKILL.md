@@ -95,6 +95,8 @@ Follow `references/kanban-protocol.md` exactly: statuses, the transition table, 
 3. Record a snapshot (HEAD + `git status --porcelain`), dispatch the column's agent fresh, wait, read the changed files and the slice file yourself, check the evidence and the change scope against the snapshot, then move the slice by the transition table and commit `<slice-id> <column>: <result>`.
 4. Repeat until every slice is `Completed` or `Blocked: needs clarification`.
 
+After an L2 slice is signed off, resume the next ready slice automatically when the current request authorizes continuing. If the requested scope ends at that slice, report the remaining board state and ask whether to continue with the next ready slice. If blocked, state what is needed to proceed. Do not present a slice sign-off as completion of the whole feature.
+
 ## Phase 3: Development
 
 Dispatch the mapped **backend** and/or **frontend** specialist for each part, each in a fresh agent with the slice file and the PRD:
@@ -139,6 +141,8 @@ Use the short form (5 lines in Deadline) or this normal form:
 4. `Open risks`: assumptions, remaining findings, blind spots (`The strongest test proved X; it did not prove Y.`), rollback concerns.
 5. `Judgment`: one consequential decision and who made it; include or link the merge-risk card for a PR or Ship handoff.
 6. `Status`: `SIGNED OFF (ACCEPT)` / `REJECTED` / `BLOCKED` / `NOT VERIFIED`. Never "ready to deploy".
+
+End every handoff with a clear next action: name the next ready slice and continue when authorized; otherwise ask the user for the specific decision or input needed. When the requested work is complete and no action is required, explicitly say it is finished. Distinguish slice status from overall feature status.
 
 Do not call tests PASS without running them. Do not silently push, merge into `main`, publish, drop databases or change credentials.
 
