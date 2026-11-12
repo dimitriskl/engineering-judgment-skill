@@ -58,3 +58,20 @@ Status: READY FOR HUMAN REVIEW. Developer sign-off not yet recorded. No merge or
 GitHub Actions run 43239653539 on be8e983 failed: installer-linux 124 passed/1 failed; installer-windows 123 passed/1 failed; validate passed. Both failures are legacy lock migration, unlike local Node24 runs. Hosted Node version: 22.23.4. Root cause is not yet established.
 Failures: 3/3. Status: BLOCKED: needs clarification.
 Blocked from: READY FOR HUMAN REVIEW. Decision needed: authorize another focused diagnostic/fix round under the skill retry-cap escalation. Do not merge while CI is failing.
+
+## Authorized continuation
+Developer: "go on another turn" (2026-11-12). Continue focused diagnosis and correction of hosted legacy-lock failure, followed by fresh review and QA. Status: In development. Prior three failures retained as history; new authorized round starts here.
+Orchestrator dispatch backend_pr4_ci at 4d42471; tracked working tree clean, existing local test logs and harness preserved.
+
+## Authorized CI diagnostic round
+- The earlier local Node 24 labels were inaccurate: the `npx` command used its adjacent system Node 22.14 binary and cached skills CLI 1.5.18. Node on PATH alone did not determine npm's runtime.
+- Reproduced the CI failure with a complete Node 22.23.4 distribution and a fresh npm cache: skills CLI 1.8.1 rewrote the global `mydevfactory` lock entry to `sourceType: local` and the temporary checkout path, retaining the unrelated `other` entry. The existing remote-only cleanup therefore left the transient entry behind.
+- Both installers now retire the entry when its local source resolves to that exact temporary checkout; unrelated skill names, including one from the same repository, remain intact. The end-to-end assertions report lock contents on failure.
+- Validation: complete Node 22.23.4 distribution and initially empty npm caches resolved skills CLI 1.8.1; real-network PowerShell suite exited 0 (124 passed), Git Bash suite exited 0 (125 passed), and `git diff --check` passed. Hosted CI must be rerun after review and publication.
+
+## CI correction review
+Verdict by senior-code-reviewer, recorded by orchestrator: PASS. Both scripts use matching guards for scope, key, local type and exact resolved temporary source; both fixtures preserve unrelated entries including another skill from the same repository. git diff --check 4d42471 passed. End-to-end runs not repeated by reviewer.
+Status: In QA. Orchestrator dispatch qa_pr4_ci at 4d42471 with five tracked changed files, local harness/logs preserved.
+
+## Independent QA of CI correction
+Verdict by qa-automation-engineer, recorded by orchestrator: PASS. Complete Node22.23.4/npm10.9.9, separate initially empty caches, confirmed skills1.8.1 in both caches. PowerShell124/0 exit0; Bash125/0 exit0. Pinned files/receipts, migration and unrelated entry preservation, updates/scope/config and negative paths passed. Hosted CI pending; previous coverage limitations remain. Status: READY FOR HUMAN REVIEW pending hosted checks.

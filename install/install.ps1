@@ -434,7 +434,7 @@ if (scope === "project" && fs.existsSync(lockPath)) {
     fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
   }
 }
-// Old global installs can still point at a moving remote; retire only our entry.
+// The CLI may replace the old remote entry with this temporary local source.
 if (scope === "personal") {
   const globalLockPath = process.env.XDG_STATE_HOME
     ? path.join(process.env.XDG_STATE_HOME, "skills", ".skill-lock.json")
@@ -442,7 +442,9 @@ if (scope === "personal") {
   if (fs.existsSync(globalLockPath)) {
     const lock = JSON.parse(fs.readFileSync(globalLockPath, "utf8"));
     const entry = lock.skills && lock.skills.mydevfactory;
-    if (entry && (entry.source === repo || entry.source === `https://github.com/${repo}`)) {
+    const isTemporarySource = entry && entry.sourceType === "local" && typeof entry.source === "string"
+      && path.resolve(entry.source) === path.resolve(source);
+    if (entry && (isTemporarySource || entry.source === repo || entry.source === `https://github.com/${repo}`)) {
       delete lock.skills.mydevfactory;
       fs.writeFileSync(globalLockPath, JSON.stringify(lock, null, 2) + "\n");
     }

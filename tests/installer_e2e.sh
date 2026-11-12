@@ -385,7 +385,7 @@ enabled = true
 EOF
 printf '%s\n' "PREEXISTING-AGENT-EDIT" > "$PERSONAL_HOME/.claude/agents/requirements-analyst.md"
 mkdir -p "$PERSONAL_HOME/.agents"
-printf '%s\n' '{"version":3,"skills":{"mydevfactory":{"source":"dimitriskl/mydevfactory"},"other":{"source":"example/other"}}}' > "$PERSONAL_HOME/.agents/.skill-lock.json"
+printf '%s\n' '{"version":3,"skills":{"mydevfactory":{"source":"dimitriskl/mydevfactory"},"other":{"source":"example/other"},"same-repo":{"source":"dimitriskl/mydevfactory"}}}' > "$PERSONAL_HOME/.agents/.skill-lock.json"
 printf '%s' '{malformed' > "$PERSONAL_HOME/skills-lock.json"
 launch "$PERSONAL_HOME" "$PERSONAL_WORK" "$OUT" "$ERR" bash "$INSTALL" --scope personal
 assert_status "fresh personal install exits 0" 0 "$OUT" "$ERR"
@@ -442,10 +442,11 @@ if python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert r["reposi
 else
   bad "receipt does not record the hub pin"
 fi
-if python3 -c 'import json,sys; s=json.load(open(sys.argv[1]))["skills"]; assert "mydevfactory" not in s and s["other"]["source"] == "example/other"' "$PERSONAL_HOME/.agents/.skill-lock.json"; then
-  ok "legacy lock entry is removed and unrelated entries survive"
+if python3 -c 'import json,sys; s=json.load(open(sys.argv[1]))["skills"]; assert "mydevfactory" not in s and s["other"]["source"] == "example/other" and s["same-repo"]["source"] == "dimitriskl/mydevfactory"' "$PERSONAL_HOME/.agents/.skill-lock.json"; then
+  ok "legacy or temporary lock entry is removed and unrelated entries survive"
 else
   bad "legacy lock migration failed"
+  cat "$PERSONAL_HOME/.agents/.skill-lock.json"
 fi
 if cmp -s "$CASE/settings-before.json" "$PERSONAL_HOME/.claude/settings.json"; then
   ok "existing auto-compact value is kept"

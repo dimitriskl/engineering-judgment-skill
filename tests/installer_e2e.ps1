@@ -437,7 +437,7 @@ $before = Join-Path $c.Case "settings-before.json"
 [IO.File]::WriteAllText((Join-Path $claudeAgents "requirements-analyst.md"), "PREEXISTING-AGENT-EDIT`n", $utf8)
 $legacyDir = Join-Path $c.Home ".agents"
 New-Item -ItemType Directory -Force -Path $legacyDir | Out-Null
-[IO.File]::WriteAllText((Join-Path $legacyDir ".skill-lock.json"), '{"version":3,"skills":{"mydevfactory":{"source":"dimitriskl/mydevfactory"},"other":{"source":"example/other"}}}', $utf8)
+[IO.File]::WriteAllText((Join-Path $legacyDir ".skill-lock.json"), '{"version":3,"skills":{"mydevfactory":{"source":"dimitriskl/mydevfactory"},"other":{"source":"example/other"},"same-repo":{"source":"dimitriskl/mydevfactory"}}}', $utf8)
 $homeLock = Join-Path $c.Home "skills-lock.json"
 [IO.File]::WriteAllText($homeLock, "{malformed", $utf8)
 $code = Invoke-Install $c $Install @("--scope", "personal")
@@ -472,7 +472,7 @@ if ($skill -and (Get-FileHash $remoteSkill).Hash -eq (Get-FileHash $skill.FullNa
 $receipt = Get-Content -Raw (Join-Path $c.Home ".engineering-judgment/skill-pin.json") | ConvertFrom-Json
 if ($receipt.commit -eq $Hub -and $receipt.repository -eq "dimitriskl/mydevfactory") { Ok "receipt records the hub pin" } else { Bad "receipt does not record the hub pin" }
 $legacy = Get-Content -Raw (Join-Path $legacyDir ".skill-lock.json") | ConvertFrom-Json
-if (-not $legacy.skills.PSObject.Properties["mydevfactory"] -and $legacy.skills.other.source -eq "example/other") { Ok "legacy lock entry is removed and unrelated entries survive" } else { Bad "legacy lock migration failed" }
+if (-not $legacy.skills.PSObject.Properties["mydevfactory"] -and $legacy.skills.other.source -eq "example/other" -and $legacy.skills."same-repo".source -eq "dimitriskl/mydevfactory") { Ok "legacy or temporary lock entry is removed and unrelated entries survive" } else { Bad "legacy lock migration failed"; Write-Output (Read-Text (Join-Path $legacyDir ".skill-lock.json")) }
 if ((Get-FileHash $before).Hash -eq (Get-FileHash $settings).Hash) { Ok "existing auto-compact value is kept" } else { Bad "existing Claude settings were rewritten" }
 $tomlText = Read-Text (Join-Path $c.Home ".codex/config.toml")
 $keyAt = $tomlText.IndexOf("model_auto_compact_token_limit")
