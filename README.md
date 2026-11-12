@@ -289,7 +289,7 @@ The skill works with any agents. These are the ones it was built and tested with
 | `backend` | csharp-expert-developer | Builds the backend part of each slice (.NET) | [repo](https://github.com/dimitriskl/csharp-expert-developer) |
 | `frontend` | angular-typescript-developer | Builds the frontend part of each slice (Angular) | [repo](https://github.com/dimitriskl/angular-typescript-developer) |
 | `qa` | qa-automation-engineer | Checks every acceptance criterion, read-only; writes its own verdict | [repo](https://github.com/dimitriskl/qa-automation-engineer) |
-| `reviewer` | senior-code-reviewer (v1.1.0+) | Reviews each slice, read-only except its own verdict | [repo](https://github.com/dimitriskl/senior-code-reviewer) |
+| `reviewer` | senior-code-reviewer (v1.2.0) | Reviews each slice, read-only except its own verdict | [repo](https://github.com/dimitriskl/senior-code-reviewer) |
 
 Also available: [ui-ux-developer](https://github.com/dimitriskl/ui-ux-developer) (an alternative `frontend` focused on UX and accessibility), [software-architect](https://github.com/dimitriskl/software-architect) (for design questions outside the board) and [data-analyst-bi-expert](https://github.com/dimitriskl/data-analyst-bi-expert) (an alternative `analyst` for data-heavy and BI work).
 

@@ -3,6 +3,7 @@
 ## 3.5.0 — Reproducible installs (2026-11-10)
 
 - Pin the hub and all eight agents to full commit SHAs in `install/pins.txt`, shared by the bash and PowerShell installers. Fetches no longer follow `main`. `--ref` or `EJ_REF` overrides the hub ref. A branch or tag, including a branch name that contains a slash, is resolved to a commit SHA first.
+- The agent pins are the release commits: v1.1.0 for requirements-analyst, software-architect, angular-typescript-developer, data-analyst-bi-expert, csharp-expert-developer, qa-automation-engineer and ui-ux-developer, and v1.2.0 for senior-code-reviewer.
 - Release steps for pins are documented in `CONTRIBUTING.md`.
 - Require Node.js 22.20 or newer before installing, and stop with an install link when `node` or `npx` is missing or older.
 - Remember personal scope for the user account, and project scope only in that project folder.
