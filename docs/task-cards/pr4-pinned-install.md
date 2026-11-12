@@ -39,3 +39,17 @@ Prior P1/P2 fixed for lowercase scopes. Failures: 2/3.
 Verdict by senior-code-reviewer, recorded by orchestrator: PASS.
 No actionable findings. Scope normalized before Node, mixed-case regression checks marker/receipt/cleanup. Reviewer directly verified PowerShell passes Project as project. Network suite counts are backend evidence; reviewer did not rerun them.
 Status: In QA. Failures: 2/3.
+
+## Final independent QA and handoff
+Verdict by qa-automation-engineer, recorded by orchestrator: PASS at 2ac35ae.
+| Criterion | Evidence | Verdict |
+| --- | --- | --- |
+| Personal/project pinned bytes and durable receipts | Real-network installer suites, pinned SKILL.md and agent comparisons | PASS |
+| Updates, saved scope, configuration and other lock entries preserved | Same suites | PASS |
+| Bad refs/downloads and real CLI destination conflict cannot create success receipt | Same suites | PASS |
+| Mixed-case PowerShell scope | Project marker, receipt location and lock cleanup assertions | PASS |
+| Documentation integration | README installation-method sections inspected | PASS |
+Commands: PowerShell suite exit 0, 124 passed; Git Bash suite exit 0, 125 passed; python scripts/validate_skill.py exit 0; git diff --check exit 0. Node 24, Windows and Git Bash, real network. Initial sandbox DNS/Python failure was infrastructure; elevated rerun passed.
+Limits: no independent full-tree byte comparison, successful override receipt, every legacy lock format, real Node 18, or macOS run. No visual UI applicable.
+Merge risk: verification medium (these limits); request alignment low (targeted fix); impact medium (writes local skill installation and lock metadata); rollback medium (revert PR and reinstall prior version, retain backups); detection medium (explicit errors and receipt, no runtime monitoring).
+Status: READY FOR HUMAN REVIEW. Developer sign-off not yet recorded. No merge or release performed.
