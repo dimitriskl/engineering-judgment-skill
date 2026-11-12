@@ -11,6 +11,8 @@ AI coding agents can write a feature in minutes. That does **not** mean the team
 
 > **The gap:** more code generated than engineers can meaningfully review. The goal is **verified value per minute**, not the maximum number of generated lines.
 
+Upgrading from `engineering-judgment` or 3.4? See the [migration note](#manual-installation-no-node-required) and the [CHANGELOG](CHANGELOG.md).
+
 ## 30-second start
 
 **One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project folder. Node.js 22.20 or later is required; the installer checks this first and stops with a link to [nodejs.org](https://nodejs.org) if Node is missing or older.
@@ -25,6 +27,16 @@ curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/inst
 $env:EJ_REF = 'v3.5.0'
 irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/install/install.ps1 | iex
 ```
+
+Only want the skill?
+
+```bash
+npx skills add https://github.com/dimitriskl/mydevfactory/tree/v3.5.0 --skill mydevfactory
+```
+
+Then open a **new agent session** and invoke the skill: `/mydevfactory` in Claude Code, `$mydevfactory` in Codex. To try it on a first feature, see [First feature: add 2FA to login](#first-feature-add-2fa-to-login).
+
+### Install details
 
 Prefer to read the script first? Clone the tag anywhere, then run it **from your project folder**:
 
@@ -41,17 +53,11 @@ Every install is reproducible: the skill and each agent are fetched at the commi
 - **Later runs** reuse the remembered scope and update what is already installed. A changed agent file is replaced and the previous copy is kept as `<file>.bak-YYYYMMDD-HHMMSS` (UTC). Older backups stay. To choose again: `--scope personal` or `--scope project` (bash: `bash install/install.sh --scope project`; PowerShell: `--scope project` or `$env:EJ_SCOPE`).
 - Every remote file is downloaded before anything is written. If a download fails, the installer names the file and URL, writes nothing, and says that rerunning is safe.
 - In project scope it adds `.engineering-workflow.json` when the folder has none. Commit that file to share the agent map. `.agents/`, `.claude/`, `.codex/`, `.engineering-judgment/`, and the skills lock are local tool state.
-- It also sets **auto-compact at 40%** (below) if you haven't set it yourself.
+- It also sets **auto-compact at 40%** ([below](#auto-compact-at-40)) if you haven't set it yourself.
 
-Only want the skill?
+### Auto-compact at 40%
 
-```bash
-npx skills add https://github.com/dimitriskl/mydevfactory/tree/v3.5.0 --skill mydevfactory
-```
-
-Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
-
-**Once: set auto-compact to 40%.** Models get less reliable once their context is more than about 40% full. Every agent that is still working on its job compacts automatically at 40% and carries on; the next job always starts in a fresh agent. This is a host setting; the installer above sets it for you, or set it by hand:
+Models get less reliable once their context is more than about 40% full. Every agent that is still working on its job compacts automatically at 40% and carries on; the next job always starts in a fresh agent. This is a host setting; the installer above sets it for you, or set it by hand:
 
 ```powershell
 # Claude Code (main session and subagents). Windows PowerShell; on macOS/Linux: export CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=40
@@ -62,6 +68,10 @@ setx CLAUDE_AUTOCOMPACT_PCT_OVERRIDE 40
 # Codex CLI: ~/.codex/config.toml (or .codex/config.toml in the project). 40% of the model's context window, e.g. 400,000 tokens → 160000
 model_auto_compact_token_limit = 160000
 ```
+
+## First feature: add 2FA to login
+
+Add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
 
 **1. Start the feature:**
 
@@ -101,6 +111,8 @@ ACCEPT
 ```
 
 ### What happens in the Walkthrough step
+
+*Illustrative example: the card below shows the format, not a recorded run.*
 
 When every slice is `Completed`, the orchestrator stops building and shows you what was built, **in the order the code runs** (like stepping through it with a debugger), not file by file. Nothing changes in your code during the walk; it only reads the diff since the feature branch started.
 
@@ -220,6 +232,8 @@ The skill prints a line each time an agent starts or finishes, and says whether 
 | 🟡 qa | checks the acceptance criteria |
 | ⚪ orchestrator | the main session: routing, integration, your sign-off |
 
+*Illustrative example of the status lines, not a recorded run:*
+
 ```text
 🟣 ▶ Now working: analyst [opus, high] (requirements-analyst) · PRD invoice-approval · subagent `analyst_prd` started
 🟣 ✓ Done: analyst [opus, high] (requirements-analyst) · 5 stories, 2 open questions
@@ -234,6 +248,8 @@ The skill prints a line each time an agent starts or finishes, and says whether 
 The markers are plain emoji, so they show the same in Claude Code and Codex CLI. Each subagent run gets a readable name (`<role>_<slice>`). When Codex prints its own line, such as "Interacted with `/root/backend_s001`", the line just before it (`🔵 ▶ Now working: backend [sonnet, medium] (csharp-expert-developer) · slice 001 · subagent `backend_s001` started`) tells you which agent that is. Lines the host tool prints itself (such as "Waiting for agents") come from the tool, not the skill, and have no marker.
 
 ### What the handoff looks like
+
+*Illustrative example, not a recorded run:*
 
 ```text
 Delivered: Fixed duplicate webhook processing
