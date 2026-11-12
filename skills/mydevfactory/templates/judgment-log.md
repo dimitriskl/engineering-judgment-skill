@@ -1,4 +1,4 @@
-# Engineering Judgment Log (opt-in only)
+# Judgment Log (opt-in only)
 
 Only create or append this document when the developer requests it. Exclude secrets, customer data and proprietary source snippets.
 

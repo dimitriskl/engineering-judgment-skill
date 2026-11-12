@@ -5,11 +5,11 @@
 # How to bump a pin and tag a release: CONTRIBUTING.md.
 
 hub mydevfactory 92021a098adf33a71ed0bf6998ee4e9a0f9db253
-agent requirements-analyst aac401f0c1b3c1803b015d27ff20be8fdc652551
-agent csharp-expert-developer 9c772c160df54453c15de5a862cbd6b768858912
-agent angular-typescript-developer 4fa1a7e34e44ca588e135cdbe378655814c35eda
-agent qa-automation-engineer 3437c32a5a0fc9760ffeda63d6b84704edae2869
-agent senior-code-reviewer b4b783a160034aad6a2f0696b701a4a1c715a791
-agent ui-ux-developer c2f1be2a490b1107225c29140ff1785719bf3274
-agent software-architect f1b39167aca1a35fbb1e84590d60a590a115339a
-agent data-analyst-bi-expert bc1bb49eb4baf65df96e9aa9f9b30cbc35d162f0
+agent requirements-analyst cc3853dafc649b7ecb4647810a762a874b56a9da
+agent csharp-expert-developer cf0f4c704931b80d5530bf75f4cb1bbeac064750
+agent angular-typescript-developer 1060c0a1e613d72ea6d034fc75969999f4bb7cd6
+agent qa-automation-engineer c0fe1a47989c9217b9c95413c4396a55d42df9dd
+agent senior-code-reviewer 252bb4c6b736f492ded16293f5b274ee47b08b43
+agent ui-ux-developer ce92c1d0b783dc63a104f0bc3ae203cf99cf1784
+agent software-architect c8ea135d3fad4474675925f5f66743d030a9d26c
+agent data-analyst-bi-expert bc80dd6a11546b0812f4e420ed81ba58002a7a4d

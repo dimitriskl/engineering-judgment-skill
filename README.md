@@ -1,9 +1,5 @@
 # MyDevFactory
 
-Walkthroughs begin with a plain-language explanation of the approach and a code map showing the files, classes and methods involved. Interfaces that support diagrams can also show a visual flow.
-
-For a PR or Ship handoff, the workflow summarizes merge risk across verification, alignment, impact, rollback and error detection. QA can attach concise evidence of meaningful UI flows, and teams can optionally learn from review misses and false positives. Existing L0–L2 routing and human sign-off remain in place.
-
 **Ship AI-assisted code you can explain, verify, and stand behind.**
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -41,7 +37,7 @@ bash ~/src/mydevfactory/install/install.sh      # or: pwsh -File ~/src/mydevfact
 Every install is reproducible: the skill and each agent are fetched at the commit SHAs listed in [`install/pins.txt`](install/pins.txt), never from `main`. Use a tag or a full commit SHA with `--ref`.
 
 - **First run** asks once: **personal** (all your projects: `~/.agents`, `~/.claude`, `~/.codex`) or **project** (only the current folder). With no terminal, personal is the default.
-- **Personal scope is remembered for your user** (`~/.engineering-judgment/install-scope`). **Project scope is remembered only in that folder** (`<project>/.engineering-judgment/install-scope`). A project install does not affect later runs in other folders.
+- **Personal scope is remembered for your user** (`~/.engineering-judgment/install-scope`). **Project scope is remembered only in that folder** (`<project>/.engineering-judgment/install-scope`). A project install does not affect later runs in other folders. The `.engineering-judgment` folder keeps the project's earlier name on purpose, so existing installs keep their settings.
 - **Later runs** reuse the remembered scope and update what is already installed. A changed agent file is replaced and the previous copy is kept as `<file>.bak-YYYYMMDD-HHMMSS` (UTC). Older backups stay. To choose again: `--scope personal` or `--scope project` (bash: `bash install/install.sh --scope project`; PowerShell: `--scope project` or `$env:EJ_SCOPE`).
 - Every remote file is downloaded before anything is written. If a download fails, the installer names the file and URL, writes nothing, and says that rerunning is safe.
 - In project scope it adds `.engineering-workflow.json` when the folder has none. Commit that file to share the agent map. `.agents/`, `.claude/`, `.codex/`, `.engineering-judgment/`, and the skills lock are local tool state.
@@ -139,7 +135,7 @@ Step 2/7 · src/Auth/TwoFactorService.cs:40-58
 - **`approve all`** skips the rest; the sign-off honestly records which steps you didn't view.
 - **At the end** you see a one-screen summary: steps viewed, change requests, and **blind spots** (what the tests did not prove). Then you choose **ACCEPT** or **REJECT**. ACCEPT is only possible when every slice is Completed and no change request is still open. Your decision is written into the PRD's `Developer sign-off` with your git name, the date and the commit, then the orchestrator offers the merge; you do it.
 
-For an L2 slice, the separate slice sign-off can be accepted while other slices are still unfinished, provided that slice is Completed and has no open change requests. Afterward, the orchestrator identifies the next ready slice and continues if already authorized, or asks whether to continue. `approve all` skips walkthrough cards; it does not itself accept the sign-off. When the requested work is finished, the handoff says so explicitly.
+For an L2 slice (see [risk levels](#pick-a-mode)), the separate slice sign-off can be accepted while other slices are still unfinished, provided that slice is Completed and has no open change requests. Afterward, the orchestrator identifies the next ready slice and continues if already authorized, or asks whether to continue. `approve all` skips walkthrough cards; it does not itself accept the sign-off. When the requested work is finished, the handoff says so explicitly.
 
 If you stop halfway, open a new session and continue from the files: `Use mydevfactory in Auto mode. Resume the board in prd/ and continue with the next ready slice.` To walk through the changes again later: `Use mydevfactory in Walkthrough mode on prd/login-2fa.`
 
@@ -201,6 +197,15 @@ The skill reuses what your repo already has (existing PRDs, specs and issues are
 | **Audit** | Existing PR/diff | `Use mydevfactory in Audit mode on my branch. What do passing tests miss?` |
 | **Walkthrough** (formerly Guide me) | See what was built, step by step, and sign off | `Use mydevfactory in Walkthrough mode on this branch.` |
 | **Drill** | Improve your own engineering judgment (the only mode with quiz questions) | `Use mydevfactory in Drill mode. Ask one question at a time about a real design decision.` |
+| **Ship** | Before a release decision | `Use mydevfactory in Ship mode on this branch. Is it ready to release?` |
+
+Ship checks the contract, the evidence, rollback and monitoring, then asks you for the release decision. It never deploys. For a PR or Ship handoff it also writes a short merge-risk summary: verification, alignment with the request, impact, rollback and error detection, each rated low, medium, high or unknown.
+
+**Risk levels.** Each slice gets a risk level, which sets how much process it goes through:
+
+- **L0**: wording, styles, comments or a trivial local change. One relevant check, no review or QA rounds.
+- **L1**: an ordinary, contained feature or bug fix. Targeted tests, review and QA.
+- **L2**: authentication, money, personal data, public API contracts, destructive migrations, concurrency or production safety. Explicit invariants, failure-path tests and a separate sign-off for each slice. A deadline never lowers L2 to L0.
 
 ### Who is working right now
 
@@ -284,7 +289,7 @@ The skill works with any agents. These are the ones it was built and tested with
 | `backend` | csharp-expert-developer | Builds the backend part of each slice (.NET) | [repo](https://github.com/dimitriskl/csharp-expert-developer) |
 | `frontend` | angular-typescript-developer | Builds the frontend part of each slice (Angular) | [repo](https://github.com/dimitriskl/angular-typescript-developer) |
 | `qa` | qa-automation-engineer | Checks every acceptance criterion, read-only; writes its own verdict | [repo](https://github.com/dimitriskl/qa-automation-engineer) |
-| `reviewer` | senior-code-reviewer (v1.1.0+) | Reviews each slice, read-only except its own verdict | [repo](https://github.com/dimitriskl/senior-code-reviewer) |
+| `reviewer` | senior-code-reviewer (v1.2.0) | Reviews each slice, read-only except its own verdict | [repo](https://github.com/dimitriskl/senior-code-reviewer) |
 
 Also available: [ui-ux-developer](https://github.com/dimitriskl/ui-ux-developer) (an alternative `frontend` focused on UX and accessibility), [software-architect](https://github.com/dimitriskl/software-architect) (for design questions outside the board) and [data-analyst-bi-expert](https://github.com/dimitriskl/data-analyst-bi-expert) (an alternative `analyst` for data-heavy and BI work).
 
