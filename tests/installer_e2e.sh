@@ -384,8 +384,17 @@ personality = "pragmatic"
 enabled = true
 EOF
 printf '%s\n' "PREEXISTING-AGENT-EDIT" > "$PERSONAL_HOME/.claude/agents/requirements-analyst.md"
+mkdir -p "$PERSONAL_HOME/.agents"
+printf '%s\n' '{"version":3,"skills":{"mydevfactory":{"source":"dimitriskl/mydevfactory"},"other":{"source":"example/other"}}}' > "$PERSONAL_HOME/.agents/.skill-lock.json"
+printf '%s' '{malformed' > "$PERSONAL_HOME/skills-lock.json"
 launch "$PERSONAL_HOME" "$PERSONAL_WORK" "$OUT" "$ERR" bash "$INSTALL" --scope personal
 assert_status "fresh personal install exits 0" 0 "$OUT" "$ERR"
+if [ "$(cat "$PERSONAL_HOME/skills-lock.json")" = '{malformed' ]; then
+  ok "personal install preserves malformed home project lock"
+else
+  bad "personal install changed home project lock"
+fi
+: > "$PERSONAL_HOME/skills-lock.json"
 assert_grep "$OUT" "Scope: personal (" "personal install announces personal scope"
 assert_grep "$OUT" "Hub: mydevfactory @ $HUB" "personal install prints the hub pin"
 assert_grep "$OUT" "Agent: requirements-analyst @ $REQ" "personal install prints the agent pin"
@@ -427,11 +436,16 @@ if [ -n "$installed_skill" ] && cmp -s "$remote_skill" "$installed_skill"; then
 else
   bad "installed skill does not match the pinned hub commit ($installed_skill)"
 fi
-lock="$(find "$PERSONAL_HOME" \( -name '.skill-lock.json' -o -name 'skills-lock.json' \) -print -quit)"
-if [ -n "$lock" ] && grep -q "$HUB" "$lock"; then
-  ok "skill lock records the hub pin"
+receipt="$PERSONAL_HOME/.engineering-judgment/skill-pin.json"
+if python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert r["repository"] == "dimitriskl/mydevfactory" and r["commit"] == sys.argv[2]' "$receipt" "$HUB"; then
+  ok "receipt records the hub pin"
 else
-  bad "skill lock does not record the hub pin"
+  bad "receipt does not record the hub pin"
+fi
+if python3 -c 'import json,sys; s=json.load(open(sys.argv[1]))["skills"]; assert "mydevfactory" not in s and s["other"]["source"] == "example/other"' "$PERSONAL_HOME/.agents/.skill-lock.json"; then
+  ok "legacy lock entry is removed and unrelated entries survive"
+else
+  bad "legacy lock migration failed"
 fi
 if cmp -s "$CASE/settings-before.json" "$PERSONAL_HOME/.claude/settings.json"; then
   ok "existing auto-compact value is kept"
@@ -463,6 +477,11 @@ fi
 
 launch "$PERSONAL_HOME" "$PERSONAL_WORK" "$OUT" "$ERR" bash "$UPDATE"
 assert_status "update.sh over a personal install exits 0" 0 "$OUT" "$ERR"
+if [ ! -s "$PERSONAL_HOME/skills-lock.json" ]; then
+  ok "personal update preserves empty home project lock"
+else
+  bad "personal update changed empty home project lock"
+fi
 assert_grep "$OUT" "up to date" "update.sh reports files that are already current"
 assert_grep "$OUT" "Remembered for your user account" "update.sh reuses the saved personal scope"
 bak_count="$(find "$PERSONAL_HOME/.claude/agents" -maxdepth 1 -name 'requirements-analyst.md.bak-*' | wc -l | tr -d ' ')"
@@ -497,6 +516,33 @@ if [ "$found_pre" = "1" ] && [ "$found_second" = "1" ] && [ "$found_third" = "1"
 else
   bad "backup contents were overwritten (pre=$found_pre second=$found_second third=$found_third)"
   find "$PERSONAL_HOME/.claude/agents" -maxdepth 1 -name 'requirements-analyst.md.bak-*' -print
+fi
+
+# An unsuccessful CLI invocation must not leave a receipt claiming success.
+fail_shim="$CASE/fail-npx"
+mkdir -p "$fail_shim"
+printf '#!/bin/sh\nexit 9\n' > "$fail_shim/npx"
+chmod +x "$fail_shim/npx"
+launch "$PERSONAL_HOME" "$PERSONAL_WORK" "$OUT" "$ERR" env PATH="$fail_shim:$ORIG_PATH" bash "$INSTALL" --scope personal
+assert_status "failed skill install exits 1" 1 "$OUT" "$ERR"
+assert_grep "$ERR" "Skill install failed" "failed skill install reports the error"
+if [ ! -e "$PERSONAL_HOME/.engineering-judgment/skill-pin.json" ]; then
+  ok "failed skill install leaves no success receipt"
+else
+  bad "failed skill install retains a success receipt"
+fi
+
+# The real CLI can return zero when a destination is blocked by a file.
+new_case
+mkdir -p "$HOME_DIR/.agents" "$HOME_DIR/.engineering-judgment"
+printf '%s' conflict > "$HOME_DIR/.agents/skills"
+printf '%s' stale > "$HOME_DIR/.engineering-judgment/skill-pin.json"
+launch "$HOME_DIR" "$WORK" "$OUT" "$ERR" bash "$INSTALL" --scope personal
+assert_status "real CLI host path conflict exits 1" 1 "$OUT" "$ERR"
+if [ ! -e "$HOME_DIR/.engineering-judgment/skill-pin.json" ]; then
+  ok "host path conflict removes stale receipt"
+else
+  bad "host path conflict retains receipt"
 fi
 
 # --- project scope is per folder ------------------------------------------------------
@@ -537,6 +583,12 @@ if [ -n "$proj_skill" ] && cmp -s "$remote_skill" "$proj_skill"; then
   ok "project skill matches the pinned hub commit"
 else
   bad "project skill does not match the pinned hub commit ($proj_skill)"
+fi
+if python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["commit"] == sys.argv[2]' "$PROJ_A/.engineering-judgment/skill-pin.json" "$HUB" &&
+  python3 -c 'import json,sys; assert "mydevfactory" not in json.load(open(sys.argv[1]))["skills"]' "$PROJ_A/skills-lock.json"; then
+  ok "project receipt records the pin without a temporary lock source"
+else
+  bad "project receipt or lock source is wrong"
 fi
 printf '%s\n' '{"kept":true}' > "$PROJ_A/.engineering-workflow.json"
 launch "$PROJ_HOME" "$PROJ_A" "$OUT" "$ERR" bash "$INSTALL"

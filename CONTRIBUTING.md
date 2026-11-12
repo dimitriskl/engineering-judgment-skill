@@ -37,6 +37,8 @@ We welcome issue reports and PRs. Merging remains at the maintainers' discretion
 
 Pins live in [`install/pins.txt`](install/pins.txt): one full 40-character commit SHA per line, not a branch or tag. Keep the names in [`install/agents.txt`](install/agents.txt) in sync. `EJ_PINS` selects another pins file and `EJ_RAW_ROOT` changes the raw download host, which is useful for testing.
 
+The installer checks out the resolved hub commit before passing its local tree to the skills CLI. It records the commit in the scope's `.engineering-judgment/skill-pin.json` and removes the CLI's matching temporary-source project lock entry. Update with the installer, including for installations made with older CLI lock entries; generic `skills update` cannot follow the temporary checkout.
+
 To release the hub, merge the change, then set the hub line in `install/pins.txt` to that merge commit, commit the pin bump, and tag **the pin-bump commit** (for example `v3.5.0`). A commit can't pin itself, so tagging the merge would still install the previous skill. Install from tag `v3.5.0` after that tag is created. The README commands use that tag and assume it already exists; do not point users at `main`. When an agent release merges, replace that agent's SHA with its release commit.
 
 `--ref` and `EJ_REF` accept a tag, a full commit SHA, or a branch. A branch or tag is resolved to a commit SHA before download, including a branch name that contains a slash. The user README recommends a tag or a full SHA.

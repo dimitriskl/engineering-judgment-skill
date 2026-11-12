@@ -396,6 +396,8 @@ curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/inst
 
 From a checkout of that tag, run `bash install/update.sh` or `pwsh -File install/update.ps1` **from your project folder**, not from the skill checkout. The updater runs the installer again and reuses the saved personal scope, or the project scope remembered in the current folder. If you used project scope before 3.5.0, that choice was saved for every folder; run once with `--scope project` in the project you want (or `--scope personal`). To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `--scope project`. Changed agent files are backed up as `<file>.bak-YYYYMMDD-HHMMSS` (UTC) and older backups are kept. Existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
 
+The installer records the installed skill repository and resolved commit in `.engineering-judgment/skill-pin.json` under the chosen scope. Use the installer or updater above to update this skill: generic `skills update` does not track its temporary checkout. The receipt describes the last successful skill installation; it does not verify later local edits.
+
 **Installed with `npx skills`** (Node.js 22.20 or later):
 
 ```bash

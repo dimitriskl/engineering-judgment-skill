@@ -333,6 +333,8 @@ try {
     if ($Scope -ne "personal" -and $Scope -ne "project") {
         Fail "Scope must be personal or project, not '$Scope'.`nNothing was installed. Rerunning is safe." 2
     }
+    # Node compares scope case-sensitively when writing metadata and cleaning locks.
+    $Scope = $Scope.ToLowerInvariant()
     $Base = if ($Scope -eq "personal") { $UserHome } else { $cwd }
     if ($reason -eq "default") {
         Write-Output "Scope: personal ($Base). No saved choice and no terminal, so the default is personal. Run again with --scope personal or --scope project to change it."
@@ -375,13 +377,85 @@ try {
     $skillUrl = "https://github.com/$Owner/$HubName/tree/$HubRef"
     Write-Output "Skill: mydevfactory @ $HubRef"
     # npx skills add installs or updates the pinned skill.
-    $skillArgs = @("-y", "skills", "add", $skillUrl, "--skill", "mydevfactory", "-a", "claude-code", "codex")
+    # The skills CLI treats a SHA in a GitHub URL as a branch. Check out the
+    # exact commit ourselves and install from that local tree instead.
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Fail "Git is required to install the pinned skill.`nNothing was installed. Rerunning is safe."
+    }
+    Enable-LfCheckout
+    $skillSource = Join-Path $Tmp "hub"
+    & git clone --quiet --no-checkout "https://github.com/$Owner/$HubName.git" $skillSource
+    if ($LASTEXITCODE -ne 0) { Fail "Could not clone the hub for the pinned skill.`nNo agent files were written. Rerunning is safe." }
+    & git -C $skillSource checkout --quiet --detach $HubRef
+    if ($LASTEXITCODE -ne 0) { Fail "Could not check out hub commit $HubRef.`nNo agent files were written. Rerunning is safe." }
+    $skillArgs = @("-y", "skills", "add", $skillSource, "--skill", "mydevfactory", "-a", "claude-code", "codex")
     if ($Scope -eq "personal") { $skillArgs += "-g" }
     $skillArgs += "-y"
-    Enable-LfCheckout
+    $receipt = Join-Path $Base ".engineering-judgment/skill-pin.json"
+    if (Test-Path -LiteralPath $receipt) { Remove-Item -LiteralPath $receipt -Force }
     & npx @skillArgs
     if ($LASTEXITCODE -ne 0) {
         Fail "Skill install failed (npx exit code $LASTEXITCODE).`nSource: $skillUrl`nNo agent files were written. Rerunning is safe."
+    }
+
+    # The CLI's project lock points at a temporary checkout. Preserve other
+    # entries and record the resolved commit in an installer-owned receipt.
+    $metadataScript = @'
+const fs = require("fs");
+const path = require("path");
+const [base, source, repo, commit, scope] = process.argv.slice(2);
+// The CLI can report success even when one host could not be written.
+// Compare every source file at both host destinations before publishing a receipt.
+function verifyTree(sourceDir, destinationDir) {
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const from = path.join(sourceDir, entry.name);
+    const to = path.join(destinationDir, entry.name);
+    if (entry.isDirectory()) {
+      verifyTree(from, to);
+    } else if (entry.isFile() && !fs.readFileSync(from).equals(fs.readFileSync(to))) {
+      throw new Error(`Installed skill differs from pinned source: ${to}`);
+    }
+  }
+}
+try {
+  for (const host of [".agents", ".claude"]) {
+    verifyTree(path.join(source, "skills", "mydevfactory"), path.join(base, host, "skills", "mydevfactory"));
+  }
+} catch (error) {
+  console.error(`Skill verification failed: ${error.message}`);
+  process.exit(1);
+}
+const lockPath = path.join(base, "skills-lock.json");
+if (scope === "project" && fs.existsSync(lockPath)) {
+  const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+  const entry = lock.skills && lock.skills.mydevfactory;
+  if (entry && entry.sourceType === "local" && path.resolve(entry.source) === path.resolve(source)) {
+    delete lock.skills.mydevfactory;
+    fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+  }
+}
+// Old global installs can still point at a moving remote; retire only our entry.
+if (scope === "personal") {
+  const globalLockPath = process.env.XDG_STATE_HOME
+    ? path.join(process.env.XDG_STATE_HOME, "skills", ".skill-lock.json")
+    : path.join(base, ".agents", ".skill-lock.json");
+  if (fs.existsSync(globalLockPath)) {
+    const lock = JSON.parse(fs.readFileSync(globalLockPath, "utf8"));
+    const entry = lock.skills && lock.skills.mydevfactory;
+    if (entry && (entry.source === repo || entry.source === `https://github.com/${repo}`)) {
+      delete lock.skills.mydevfactory;
+      fs.writeFileSync(globalLockPath, JSON.stringify(lock, null, 2) + "\n");
+    }
+  }
+}
+const receiptDir = path.join(base, ".engineering-judgment");
+fs.mkdirSync(receiptDir, { recursive: true });
+fs.writeFileSync(path.join(receiptDir, "skill-pin.json"),
+  JSON.stringify({ repository: repo, commit }, null, 2) + "\n");
+'@
+    $metadataScript | & node - $Base $skillSource "$Owner/$HubName" $HubRef $Scope
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Could not verify the installed skill or record its pin. Rerunning is safe."
     }
 
     foreach ($agent in $agents) {

@@ -536,14 +536,91 @@ echo "Skill: mydevfactory @ ${HUB_REF}"
 global_flag=""
 if [ "$SCOPE" = "personal" ]; then global_flag="-g"; fi
 use_lf_checkout
+if ! command -v git >/dev/null 2>&1; then
+  die 1 "Git is required to install the pinned skill.
+Nothing was installed. Rerunning is safe."
+fi
+skill_source="$workdir/hub"
+if ! git clone --quiet --no-checkout "https://github.com/${OWNER}/${HUB_NAME}.git" "$skill_source"; then
+  die 1 "Could not clone the hub for the pinned skill.
+No agent files were written. Rerunning is safe."
+fi
+if ! git -C "$skill_source" checkout --quiet --detach "$HUB_REF"; then
+  die 1 "Could not check out hub commit ${HUB_REF}.
+No agent files were written. Rerunning is safe."
+fi
+# A Windows Node process cannot resolve Git Bash's /tmp path.
+if command -v cygpath >/dev/null 2>&1; then skill_source="$(cygpath -w "$skill_source")"; fi
+rm -f "$BASE/.engineering-judgment/skill-pin.json"
 set +e
-npx -y skills add "$skill_url" --skill mydevfactory -a claude-code codex $global_flag -y </dev/null
+npx -y skills add "$skill_source" --skill mydevfactory -a claude-code codex $global_flag -y </dev/null
 status=$?
 set -e
 if [ "$status" -ne 0 ]; then
   die 1 "Skill install failed (npx exit code ${status}).
 Source: ${skill_url}
 No agent files were written. Rerunning is safe."
+fi
+
+# The CLI's project lock points at a temporary checkout. Preserve other
+# entries and record the resolved commit in an installer-owned receipt.
+metadata_base="$BASE"
+if command -v cygpath >/dev/null 2>&1; then metadata_base="$(cygpath -w "$BASE")"; fi
+if ! node - "$metadata_base" "$skill_source" "$OWNER/$HUB_NAME" "$HUB_REF" "$SCOPE" <<'NODE'
+const fs = require("fs");
+const path = require("path");
+const [base, source, repo, commit, scope] = process.argv.slice(2);
+// The CLI can report success even when one host could not be written.
+// Compare every source file at both host destinations before publishing a receipt.
+function verifyTree(sourceDir, destinationDir) {
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const from = path.join(sourceDir, entry.name);
+    const to = path.join(destinationDir, entry.name);
+    if (entry.isDirectory()) {
+      verifyTree(from, to);
+    } else if (entry.isFile() && !fs.readFileSync(from).equals(fs.readFileSync(to))) {
+      throw new Error(`Installed skill differs from pinned source: ${to}`);
+    }
+  }
+}
+try {
+  for (const host of [".agents", ".claude"]) {
+    verifyTree(path.join(source, "skills", "mydevfactory"), path.join(base, host, "skills", "mydevfactory"));
+  }
+} catch (error) {
+  console.error(`Skill verification failed: ${error.message}`);
+  process.exit(1);
+}
+const lockPath = path.join(base, "skills-lock.json");
+if (scope === "project" && fs.existsSync(lockPath)) {
+  const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+  const entry = lock.skills && lock.skills.mydevfactory;
+  if (entry && entry.sourceType === "local" && path.resolve(entry.source) === path.resolve(source)) {
+    delete lock.skills.mydevfactory;
+    fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+  }
+}
+// Old global installs can still point at a moving remote; retire only our entry.
+if (scope === "personal") {
+  const globalLockPath = process.env.XDG_STATE_HOME
+    ? path.join(process.env.XDG_STATE_HOME, "skills", ".skill-lock.json")
+    : path.join(base, ".agents", ".skill-lock.json");
+  if (fs.existsSync(globalLockPath)) {
+    const lock = JSON.parse(fs.readFileSync(globalLockPath, "utf8"));
+    const entry = lock.skills && lock.skills.mydevfactory;
+    if (entry && (entry.source === repo || entry.source === `https://github.com/${repo}`)) {
+      delete lock.skills.mydevfactory;
+      fs.writeFileSync(globalLockPath, JSON.stringify(lock, null, 2) + "\n");
+    }
+  }
+}
+const receiptDir = path.join(base, ".engineering-judgment");
+fs.mkdirSync(receiptDir, { recursive: true });
+fs.writeFileSync(path.join(receiptDir, "skill-pin.json"),
+  JSON.stringify({ repository: repo, commit }, null, 2) + "\n");
+NODE
+then
+  die 1 "Could not verify the installed skill or record its pin. Rerunning is safe."
 fi
 
 while IFS=$'\t' read -r name sha; do

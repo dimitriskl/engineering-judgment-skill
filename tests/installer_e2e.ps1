@@ -435,8 +435,15 @@ $before = Join-Path $c.Case "settings-before.json"
 [IO.File]::WriteAllText($before, $settingsText, $utf8)
 [IO.File]::WriteAllText((Join-Path $codex "config.toml"), "personality = `"pragmatic`"`n`n[mcp]`nenabled = true`n", $utf8)
 [IO.File]::WriteAllText((Join-Path $claudeAgents "requirements-analyst.md"), "PREEXISTING-AGENT-EDIT`n", $utf8)
+$legacyDir = Join-Path $c.Home ".agents"
+New-Item -ItemType Directory -Force -Path $legacyDir | Out-Null
+[IO.File]::WriteAllText((Join-Path $legacyDir ".skill-lock.json"), '{"version":3,"skills":{"mydevfactory":{"source":"dimitriskl/mydevfactory"},"other":{"source":"example/other"}}}', $utf8)
+$homeLock = Join-Path $c.Home "skills-lock.json"
+[IO.File]::WriteAllText($homeLock, "{malformed", $utf8)
 $code = Invoke-Install $c $Install @("--scope", "personal")
 Assert-Status $code 0 "fresh personal install exits 0" $c
+if ((Read-Text $homeLock) -eq "{malformed") { Ok "personal install preserves malformed home project lock" } else { Bad "personal install changed home project lock" }
+[IO.File]::WriteAllText($homeLock, "", $utf8)
 Assert-Has $c.Out "Scope: personal (" "personal install announces personal scope"
 Assert-Has $c.Out "Hub: mydevfactory @ $Hub" "personal install prints the hub pin"
 Assert-Has $c.Out "Agent: requirements-analyst @ $Req" "personal install prints the agent pin"
@@ -462,8 +469,10 @@ if ((Get-FileHash $remoteMd).Hash -eq (Get-FileHash $installedMd).Hash -and (Get
 } else { Bad "installed agent files do not match the pinned commits" }
 $skill = Get-ChildItem -LiteralPath $c.Home -Force -Recurse -Filter SKILL.md -File | Where-Object { $_.Directory.Name -eq "mydevfactory" } | Select-Object -First 1
 if ($skill -and (Get-FileHash $remoteSkill).Hash -eq (Get-FileHash $skill.FullName).Hash) { Ok "installed skill matches the pinned hub commit" } else { Bad "installed skill does not match the pinned hub commit" }
-$lock = Get-ChildItem -LiteralPath $c.Home -Recurse -Force -File | Where-Object { $_.Name -eq ".skill-lock.json" -or $_.Name -eq "skills-lock.json" } | Select-Object -First 1
-if ($lock -and (Read-Text $lock.FullName).Contains($Hub)) { Ok "skill lock records the hub pin" } else { Bad "skill lock does not record the hub pin" }
+$receipt = Get-Content -Raw (Join-Path $c.Home ".engineering-judgment/skill-pin.json") | ConvertFrom-Json
+if ($receipt.commit -eq $Hub -and $receipt.repository -eq "dimitriskl/mydevfactory") { Ok "receipt records the hub pin" } else { Bad "receipt does not record the hub pin" }
+$legacy = Get-Content -Raw (Join-Path $legacyDir ".skill-lock.json") | ConvertFrom-Json
+if (-not $legacy.skills.PSObject.Properties["mydevfactory"] -and $legacy.skills.other.source -eq "example/other") { Ok "legacy lock entry is removed and unrelated entries survive" } else { Bad "legacy lock migration failed" }
 if ((Get-FileHash $before).Hash -eq (Get-FileHash $settings).Hash) { Ok "existing auto-compact value is kept" } else { Bad "existing Claude settings were rewritten" }
 $tomlText = Read-Text (Join-Path $c.Home ".codex/config.toml")
 $keyAt = $tomlText.IndexOf("model_auto_compact_token_limit")
@@ -474,6 +483,7 @@ if ($baks.Count -eq 1 -and (Read-Text $baks[0].FullName).Contains("PREEXISTING-A
 
 $code = Invoke-Install $c $Update @()
 Assert-Status $code 0 "update.ps1 over a personal install exits 0" $c
+if ((Get-Item $homeLock).Length -eq 0) { Ok "personal update preserves empty home project lock" } else { Bad "personal update changed empty home project lock" }
 Assert-Has $c.Out "up to date" "update.ps1 reports files that are already current"
 Assert-Has $c.Out "Remembered for your user account" "update.ps1 reuses the saved personal scope"
 $bakCount = @(Get-ChildItem -LiteralPath $claudeAgents -Filter "requirements-analyst.md.bak-*" -File).Count
@@ -495,17 +505,42 @@ Get-ChildItem -LiteralPath $claudeAgents -Filter "requirements-analyst.md.bak-*"
 }
 if ($found.pre -eq 1 -and $found.second -eq 1 -and $found.third -eq 1) { Ok "each local edit is kept in its own backup" } else { Bad "backup contents were overwritten (pre=$($found.pre) second=$($found.second) third=$($found.third))" }
 
+$failShim = Join-Path $c.Case "fail-npx"
+New-Item -ItemType Directory -Force -Path $failShim | Out-Null
+if ($Windows) {
+    [IO.File]::WriteAllText((Join-Path $failShim "npx.cmd"), "@echo off`r`nexit /b 9`r`n")
+    $separator = ";"
+} else {
+    [IO.File]::WriteAllText((Join-Path $failShim "npx"), "#!/bin/sh`nexit 9`n")
+    & chmod +x (Join-Path $failShim "npx")
+    $separator = ":"
+}
+$code = Invoke-Install $c $Install @("--scope", "personal") $null ($failShim + $separator + $OrigPath)
+Assert-Status $code 1 "failed skill install exits 1" $c
+Assert-Has $c.Err "Skill install failed" "failed skill install reports the error"
+if (-not (Test-Path (Join-Path $c.Home ".engineering-judgment/skill-pin.json"))) { Ok "failed skill install leaves no success receipt" } else { Bad "failed skill install retains a success receipt" }
+
+$c = New-Case
+New-Item -ItemType Directory -Force -Path (Join-Path $c.Home ".agents") | Out-Null
+[IO.File]::WriteAllText((Join-Path $c.Home ".agents/skills"), "conflict", $utf8)
+$receiptDir = Join-Path $c.Home ".engineering-judgment"
+New-Item -ItemType Directory -Force -Path $receiptDir | Out-Null
+[IO.File]::WriteAllText((Join-Path $receiptDir "skill-pin.json"), "stale", $utf8)
+$code = Invoke-Install $c $Install @("--scope", "personal")
+Assert-Status $code 1 "real CLI host path conflict exits 1" $c
+if (-not (Test-Path (Join-Path $receiptDir "skill-pin.json"))) { Ok "host path conflict removes stale receipt" } else { Bad "host path conflict retains receipt" }
+
 $c = New-Case
 $projA = Join-Path $c.Case "project-a"
 $projB = Join-Path $c.Case "project-b"
 New-Item -ItemType Directory -Force -Path $projA, $projB | Out-Null
-$code = Invoke-Install $c $Install @("--scope", "project") $null $null "file" $projA
+$code = Invoke-Install $c $Install @("--scope", "Project") $null $null "file" $projA
 Assert-Status $code 0 "fresh project install exits 0" $c
 Assert-Has $c.Out "Scope: project (" "project install announces project scope"
 Assert-Has $c.Out "Config: .engineering-workflow.json added" "project install adds the workflow file"
 if ((Test-Path (Join-Path $c.Home ".claude/agents")) -or (Test-Path (Join-Path $c.Home ".agents"))) { Bad "project install wrote agents into the user directory" } else { Ok "project install does not write agents into the user directory" }
 $marker = (Read-Text (Join-Path $projA ".engineering-judgment/install-scope")).Trim()
-if ($marker -eq "project") { Ok "project scope is stored in the project folder" } else { Bad "project scope marker is missing" }
+if ($marker -ceq "project") { Ok "mixed-case scope is stored as project" } else { Bad "project scope marker is missing or not normalized" }
 if (Test-Path (Join-Path $c.Home ".engineering-judgment/install-scope")) { Bad "project install wrote a user-wide scope file" } else { Ok "project install does not remember project scope for every folder" }
 $remoteWorkflow = Join-Path $c.Case "workflow.json"
 Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/mydevfactory/$Hub/.engineering-workflow.json" -OutFile $remoteWorkflow | Out-Null
@@ -513,6 +548,10 @@ $workflowPath = Join-Path $projA ".engineering-workflow.json"
 if ((Get-FileHash $remoteWorkflow).Hash -eq (Get-FileHash $workflowPath).Hash) { Ok "project workflow file matches the hub pin" } else { Bad "project workflow file does not match the hub pin" }
 $projSkill = Get-ChildItem -LiteralPath $projA -Force -Recurse -Filter SKILL.md -File | Where-Object { $_.Directory.Name -eq "mydevfactory" } | Select-Object -First 1
 if ($projSkill -and (Get-FileHash $remoteSkill).Hash -eq (Get-FileHash $projSkill.FullName).Hash) { Ok "project skill matches the pinned hub commit" } else { Bad "project skill does not match the pinned hub commit" }
+$projectReceipt = Get-Content -Raw (Join-Path $projA ".engineering-judgment/skill-pin.json") | ConvertFrom-Json
+if ($projectReceipt.commit -eq $Hub) { Ok "project receipt records the hub pin" } else { Bad "project receipt does not record the hub pin" }
+$projectLock = Get-Content -Raw (Join-Path $projA "skills-lock.json") | ConvertFrom-Json
+if (-not $projectLock.skills.PSObject.Properties["mydevfactory"]) { Ok "project lock does not retain the temporary source" } else { Bad "project lock retains the temporary source" }
 [IO.File]::WriteAllText($workflowPath, "{`"kept`":true}`n", $utf8)
 $code = Invoke-Install $c $Install @() $null $null "file" $projA
 Assert-Status $code 0 "project update without a flag exits 0" $c
