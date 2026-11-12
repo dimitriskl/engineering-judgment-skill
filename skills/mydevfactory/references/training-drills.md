@@ -24,4 +24,4 @@ Ask for a concise explanation: problem, proposed design, rejected alternative, i
 
 **Feedback:** `Sound reasoning | Missing evidence | Next practice`. In Drill mode ask **one question at a time**, numbered `Question n/N` with the total for the session (agree the number at the start, for example 5), await the person's answer, and do not leak the solution before the attempt.
 
-The skill is primarily a delivery orchestrator, not a compulsory teacher. After any task, the developer can start a drill on it with `Use engineering-judgment in Drill mode`.
+The skill is primarily a delivery orchestrator, not a compulsory teacher. After any task, the developer can start a drill on it with `Use mydevfactory in Drill mode`.

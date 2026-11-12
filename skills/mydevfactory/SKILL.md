@@ -1,11 +1,11 @@
 ---
-name: engineering-judgment
+name: mydevfactory
 description: Orchestrate AI-assisted software development across any stack as a file-based kanban — an analyst writes a PRD and implementable slices under prd/, fresh developer, reviewer and QA agents move each slice to Completed, and the developer signs off after a guided walkthrough. Risk-scaled, evidence-based, works in Claude Code and Codex CLI. Use for features, bugs, PRs, audits, walkthroughs and deadline-driven delivery.
 metadata:
   version: "3.4.0"
 ---
 
-# Engineering Judgment Skill — Development Orchestrator
+# MyDevFactory — Development Orchestrator
 
 ## Contract
 
@@ -152,12 +152,12 @@ Start with: `Deadline | Risk | Must ship | Protected verification | Cut first`. 
 
 ## Invocation and quick commands
 
-- `Use engineering-judgment in Full feature mode to build [feature]. Ask me only what is unclear.`
-- `Use engineering-judgment in Auto mode. Resume the board in prd/ and continue with the next ready slice.`
-- `Use engineering-judgment in Fix + Deadline mode. 30 minutes. Reproduce, fix, verify, review.`
-- `Use engineering-judgment in Audit mode on this diff. What do passing tests miss?`
-- `Use engineering-judgment in Walkthrough mode on this branch.`
-- `Use engineering-judgment in Drill mode. Ask one real architecture/failure-mode question from this repo and wait for my answer.`
+- `Use mydevfactory in Full feature mode to build [feature]. Ask me only what is unclear.`
+- `Use mydevfactory in Auto mode. Resume the board in prd/ and continue with the next ready slice.`
+- `Use mydevfactory in Fix + Deadline mode. 30 minutes. Reproduce, fix, verify, review.`
+- `Use mydevfactory in Audit mode on this diff. What do passing tests miss?`
+- `Use mydevfactory in Walkthrough mode on this branch.`
+- `Use mydevfactory in Drill mode. Ask one real architecture/failure-mode question from this repo and wait for my answer.`
 
 **No tool can guarantee a skill self-activates, or that agents can spawn other agents in every host.** In Claude Code and Codex CLI, only the main session dispatches subagents, which is why the orchestrator is the main session. Use explicit invocation for consequential work. CI, permission boundaries and human review are stronger controls than a markdown instruction alone.
 

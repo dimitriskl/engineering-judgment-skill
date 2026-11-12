@@ -2,7 +2,7 @@
 
 *Illustrative interaction; no production system was inspected.*
 
-**Developer:** Use engineering-judgment in Fix + Deadline mode. I have 30 minutes to stop duplicate orders when an external provider retries webhooks.
+**Developer:** Use mydevfactory in Fix + Deadline mode. I have 30 minutes to stop duplicate orders when an external provider retries webhooks.
 
 **Agent:** `Risk: high (duplicate external side effects). Goal: at most one ERP order per external order. No new PRD: the existing bug report is enough. Reserve time for duplicate-delivery and failure-path checks. Need one decision: can the remote API accept an idempotency key?`
 
@@ -17,12 +17,12 @@ The coding specialist then works on a bounded patch. The orchestration skill req
 
 ## Full feature example
 
-**Developer:** Use engineering-judgment in Full feature mode. Add invoice approval in a C# API and Angular UI. Ask me only what is unclear.
+**Developer:** Use mydevfactory in Full feature mode. Add invoice approval in a C# API and Angular UI. Ask me only what is unclear.
 
 **Agent:** The analyst reads the code and an existing issue, asks one question (how to prevent simultaneous approvals, with a recommended answer), and writes `prd/invoice-approval/` with two slices. Fresh backend and frontend agents build slice 001 against its Contract. The reviewer fails round 1 (audit row not in the same transaction) and writes why into the slice file; after the fix it passes, and QA passes all four criteria. The orchestrator merges the slice, runs the integration check, then walks the developer through six steps in **Walkthrough** before the Developer sign-off. See the [resulting files](prd/invoice-approval/).
 
 ## No subagents? Still usable.
 
-**Developer:** Use engineering-judgment in Auto mode. Implement a small UI validation fix.
+**Developer:** Use mydevfactory in Auto mode. Implement a small UI validation fix.
 
 **Agent:** No callable frontend specialist found. It uses the current coding agent for implementation and explicitly reports: "specialist role fallback; no separate agent was called." It performs the smallest relevant checks and does not invent independent review.

@@ -1,6 +1,6 @@
 # Security Policy
 
-Engineering Judgment Skill is Markdown instructions, not a security boundary. AI coding agents may still make mistakes or be influenced by malicious repository content.
+MyDevFactory is Markdown instructions, not a security boundary. AI coding agents may still make mistakes or be influenced by malicious repository content.
 
 **Do not publish exploits, credentials, customer source code, or production incident secrets in public issues.** For a security-sensitive finding, use GitHub's **Report a vulnerability** / private vulnerability reporting if enabled for the repository, or contact the maintainer privately.
 
