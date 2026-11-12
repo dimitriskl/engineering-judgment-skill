@@ -53,7 +53,7 @@ if ($root -notmatch '^https?://') {
 }
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ("ej-update-" + [guid]::NewGuid().ToString("n"))
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-$base = "$root/dimitriskl/engineering-judgment-skill/$ref/install"
+$base = "$root/dimitriskl/mydevfactory/$ref/install"
 function Save-Pinned([string]$Url, [string]$Dest, [string]$Label) {
     try {
         Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Dest -TimeoutSec 60 | Out-Null

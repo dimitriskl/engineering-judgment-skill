@@ -1,4 +1,4 @@
-# Installs or updates the engineering-judgment skill and the pinned agents (Windows PowerShell 5.1 or 7+).
+# Installs or updates the mydevfactory skill and the pinned agents (Windows PowerShell 5.1 or 7+).
 # From a checkout:  pwsh -File install/install.ps1
 # From a pipe:      $env:EJ_REF = '<commit-tag-or-branch>'; irm <raw>/install/install.ps1 | iex
 # Pins: install/pins.txt (full commit SHAs). --ref / EJ_REF overrides only the hub ref.
@@ -27,7 +27,7 @@ function Get-Usage {
     @"
 Usage: install.ps1 [--scope personal|project] [--ref <commit-tag-or-branch>]
 
-Installs the engineering-judgment skill and the agents pinned in install/pins.txt.
+Installs the mydevfactory skill and the agents pinned in install/pins.txt.
 Personal scope is remembered for your user account. Project scope is remembered only in that folder.
 
   --scope personal|project   where to install (or set EJ_SCOPE)
@@ -152,7 +152,7 @@ function Resolve-HubRef([string]$Ref) {
     if ($Ref -notmatch '^[A-Za-z0-9._/-]+$' -or $Ref.StartsWith("/") -or $Ref.EndsWith("/") -or $Ref.Contains("//") -or $Ref.Contains("..")) {
         Fail "Hub ref '$Ref' is not a full commit SHA, tag, or branch name.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
     }
-    $remote = "https://github.com/$Owner/engineering-judgment-skill.git"
+    $remote = "https://github.com/$Owner/mydevfactory.git"
     if (Get-Command git -ErrorAction SilentlyContinue) {
         $listing = & git ls-remote $remote "refs/heads/$Ref" "refs/tags/$Ref" "refs/tags/${Ref}^{}"
         if ($LASTEXITCODE -ne 0) {
@@ -179,12 +179,12 @@ function Resolve-HubRef([string]$Ref) {
         }
         if ($tagCommit) { return $tagCommit }
         if ($branchSha) { return $branchSha }
-        Fail "Could not resolve hub ref '$Ref'. It is not a branch or tag on https://github.com/$Owner/engineering-judgment-skill.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+        Fail "Could not resolve hub ref '$Ref'. It is not a branch or tag on https://github.com/$Owner/mydevfactory.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
     }
     $encoded = [Uri]::EscapeDataString($Ref)
-    $url = "https://api.github.com/repos/$Owner/engineering-judgment-skill/commits/$encoded"
+    $url = "https://api.github.com/repos/$Owner/mydevfactory/commits/$encoded"
     try {
-        $resp = Invoke-RestMethod -Uri $url -Headers @{ Accept = "application/vnd.github+json"; "User-Agent" = "engineering-judgment-install" } -TimeoutSec 60
+        $resp = Invoke-RestMethod -Uri $url -Headers @{ Accept = "application/vnd.github+json"; "User-Agent" = "mydevfactory-install" } -TimeoutSec 60
     } catch {
         Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
     }
@@ -231,7 +231,7 @@ try {
         if (-not $RefOverride) {
             Fail "This installer was started from a pipe and has no local install/pins.txt.`nRun it from a checkout, or pass --ref <commit-tag-or-branch> (or set EJ_REF) so install/pins.txt can be downloaded.`nNothing was installed. Rerunning is safe."
         }
-        $base = "$RawRoot/$Owner/engineering-judgment-skill/$RefOverride/install"
+        $base = "$RawRoot/$Owner/mydevfactory/$RefOverride/install"
         $pinsFile = Join-Path $Tmp "pins.txt"
         $agentsFile = Join-Path $Tmp "agents.txt"
         Save-Download "$base/pins.txt" $pinsFile "install/pins.txt"
@@ -373,9 +373,9 @@ try {
     Save-Download "$hubRaw/.engineering-workflow.json" $workflow ".engineering-workflow.json"
 
     $skillUrl = "https://github.com/$Owner/$HubName/tree/$HubRef"
-    Write-Output "Skill: engineering-judgment @ $HubRef"
+    Write-Output "Skill: mydevfactory @ $HubRef"
     # npx skills add installs or updates the pinned skill.
-    $skillArgs = @("-y", "skills", "add", $skillUrl, "--skill", "engineering-judgment", "-a", "claude-code", "codex")
+    $skillArgs = @("-y", "skills", "add", $skillUrl, "--skill", "mydevfactory", "-a", "claude-code", "codex")
     if ($Scope -eq "personal") { $skillArgs += "-g" }
     $skillArgs += "-y"
     Enable-LfCheckout

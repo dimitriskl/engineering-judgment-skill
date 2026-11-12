@@ -241,7 +241,7 @@ REQ="$(agent_sha requirements-analyst)"
 new_case
 badpins="$CASE/bad-pins.txt"
 cat > "$badpins" <<EOF
-hub engineering-judgment-skill $HUB
+hub mydevfactory $HUB
 agent requirements-analyst $REQ
 agent csharp-expert-developer 0000000000000000000000000000000000000000
 EOF
@@ -252,7 +252,7 @@ assert_grep "$ERR" "0000000000000000000000000000000000000000" "bad ref prints th
 assert_grep "$ERR" "Nothing was installed. Rerunning is safe." "bad ref says rerunning is safe"
 clean_tree "$HOME_DIR" "bad ref does not leave the earlier agent installed"
 clean_tree "$WORK" "bad ref does not write the working folder"
-if grep -q "Skill: engineering-judgment" "$OUT"; then
+if grep -q "Skill: mydevfactory" "$OUT"; then
   bad "bad ref ran the skill install before every download finished"
 else
   ok "bad ref stops before npx skills add"
@@ -298,7 +298,7 @@ gitlog="$CASE/git.log"
 launch "$HOME_DIR" "$WORK" "$OUT" "$ERR" env PATH="$shim:$ORIG_PATH" EJ_GIT_LOG="$gitlog" EJ_RAW_ROOT="http://127.0.0.1:9" \
   bash "$INSTALL" --scope personal --ref cursor/feature
 assert_status "slash branch ref exits 1 before install" 1 "$OUT" "$ERR"
-assert_grep "$OUT" "Hub: engineering-judgment-skill @ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (--ref cursor/feature resolved" "slash branch resolves to the commit SHA"
+assert_grep "$OUT" "Hub: mydevfactory @ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (--ref cursor/feature resolved" "slash branch resolves to the commit SHA"
 assert_grep "$gitlog" "refs/heads/cursor/feature" "slash branch asks git for the full branch ref"
 if grep -F 'refs/tags/cursor/feature^{}' "$gitlog" >/dev/null; then
   ok "slash branch also asks git for a peeled tag"
@@ -306,7 +306,7 @@ else
   bad "slash branch also asks git for a peeled tag"
   cat "$gitlog"
 fi
-assert_no_grep "$OUT" "Skill: engineering-judgment" "slash branch stops before npx"
+assert_no_grep "$OUT" "Skill: mydevfactory" "slash branch stops before npx"
 assert_no_grep "$ERR" "Remote branch cursor" "slash branch does not clone the name before the slash"
 clean_tree "$HOME_DIR" "slash branch writes nothing"
 
@@ -314,7 +314,7 @@ new_case
 launch "$HOME_DIR" "$WORK" "$OUT" "$ERR" env PATH="$shim:$ORIG_PATH" EJ_GIT_LOG="$CASE/git-tag.log" EJ_RAW_ROOT="http://127.0.0.1:9" \
   bash "$INSTALL" --scope personal --ref v9.9.9
 assert_status "annotated tag ref exits 1 before install" 1 "$OUT" "$ERR"
-assert_grep "$OUT" "Hub: engineering-judgment-skill @ cccccccccccccccccccccccccccccccccccccccc (--ref v9.9.9 resolved" "annotated tag uses the peeled commit"
+assert_grep "$OUT" "Hub: mydevfactory @ cccccccccccccccccccccccccccccccccccccccc (--ref v9.9.9 resolved" "annotated tag uses the peeled commit"
 assert_no_grep "$OUT" "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" "annotated tag does not use the tag object"
 
 new_case
@@ -343,7 +343,7 @@ chmod +x "$shim/git"
 launch "$HOME_DIR" "$WORK" "$OUT" "$ERR" env PATH="$shim:$ORIG_PATH" EJ_GIT_LOG="$sha_log" EJ_RAW_ROOT="http://127.0.0.1:9" \
   bash "$INSTALL" --scope personal --ref "$(hub_sha)"
 assert_status "full SHA ref exits 1 before install" 1 "$OUT" "$ERR"
-assert_grep "$OUT" "Hub: engineering-judgment-skill @ $(hub_sha) (--ref override" "full SHA is used unchanged"
+assert_grep "$OUT" "Hub: mydevfactory @ $(hub_sha) (--ref override" "full SHA is used unchanged"
 if [ -e "$sha_log" ]; then
   bad "full SHA ref called git ($(cat "$sha_log"))"
 else
@@ -352,13 +352,13 @@ fi
 clean_tree "$HOME_DIR" "full SHA ref writes nothing"
 
 remote_branch="cursor/reproducible-installs-3628"
-remote_sha="$(git ls-remote https://github.com/dimitriskl/engineering-judgment-skill.git "refs/heads/${remote_branch}" | awk 'NR==1 { print $1 }')"
+remote_sha="$(git ls-remote https://github.com/dimitriskl/mydevfactory.git "refs/heads/${remote_branch}" | awk 'NR==1 { print $1 }')"
 if [ -n "$remote_sha" ]; then
   new_case
   launch "$HOME_DIR" "$WORK" "$OUT" "$ERR" env EJ_RAW_ROOT="http://127.0.0.1:9" \
     bash "$INSTALL" --scope personal --ref "$remote_branch"
   assert_status "live slash branch exits 1 before install" 1 "$OUT" "$ERR"
-  assert_grep "$OUT" "Hub: engineering-judgment-skill @ ${remote_sha} (--ref ${remote_branch} resolved" "live slash branch matches git ls-remote"
+  assert_grep "$OUT" "Hub: mydevfactory @ ${remote_sha} (--ref ${remote_branch} resolved" "live slash branch matches git ls-remote"
   assert_no_grep "$ERR" "Remote branch cursor" "live slash branch does not clone the short name"
   clean_tree "$HOME_DIR" "live slash branch writes nothing"
 else
@@ -387,7 +387,7 @@ printf '%s\n' "PREEXISTING-AGENT-EDIT" > "$PERSONAL_HOME/.claude/agents/requirem
 launch "$PERSONAL_HOME" "$PERSONAL_WORK" "$OUT" "$ERR" bash "$INSTALL" --scope personal
 assert_status "fresh personal install exits 0" 0 "$OUT" "$ERR"
 assert_grep "$OUT" "Scope: personal (" "personal install announces personal scope"
-assert_grep "$OUT" "Hub: engineering-judgment-skill @ $HUB" "personal install prints the hub pin"
+assert_grep "$OUT" "Hub: mydevfactory @ $HUB" "personal install prints the hub pin"
 assert_grep "$OUT" "Agent: requirements-analyst @ $REQ" "personal install prints the agent pin"
 assert_grep "$OUT" "updated    $PERSONAL_HOME/.claude/agents/requirements-analyst.md" "pre-existing agent file is backed up"
 assert_grep "$OUT" "\.engineering-workflow.json" "personal install prints the workflow command"
@@ -414,14 +414,14 @@ remote_toml="$CASE/remote.toml"
 remote_skill="$CASE/remote-skill.md"
 curl -fsSL "https://raw.githubusercontent.com/dimitriskl/requirements-analyst/${REQ}/.claude/agents/requirements-analyst.md" -o "$remote_md"
 curl -fsSL "https://raw.githubusercontent.com/dimitriskl/requirements-analyst/${REQ}/.codex/agents/requirements-analyst.toml" -o "$remote_toml"
-curl -fsSL "https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/${HUB}/skills/engineering-judgment/SKILL.md" -o "$remote_skill"
+curl -fsSL "https://raw.githubusercontent.com/dimitriskl/mydevfactory/${HUB}/skills/mydevfactory/SKILL.md" -o "$remote_skill"
 if cmp -s "$remote_md" "$PERSONAL_HOME/.claude/agents/requirements-analyst.md" \
   && cmp -s "$remote_toml" "$PERSONAL_HOME/.codex/agents/requirements-analyst.toml"; then
   ok "installed agent files match the pinned commits"
 else
   bad "installed agent files do not match the pinned commits"
 fi
-installed_skill="$(find "$PERSONAL_HOME" -path '*/engineering-judgment/SKILL.md' -print -quit)"
+installed_skill="$(find "$PERSONAL_HOME" -path '*/mydevfactory/SKILL.md' -print -quit)"
 if [ -n "$installed_skill" ] && cmp -s "$remote_skill" "$installed_skill"; then
   ok "installed skill matches the pinned hub commit"
 else
@@ -526,13 +526,13 @@ else
   ok "project install does not remember project scope for every folder"
 fi
 remote_workflow="$CASE/workflow.json"
-curl -fsSL "https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/${HUB}/.engineering-workflow.json" -o "$remote_workflow"
+curl -fsSL "https://raw.githubusercontent.com/dimitriskl/mydevfactory/${HUB}/.engineering-workflow.json" -o "$remote_workflow"
 if cmp -s "$remote_workflow" "$PROJ_A/.engineering-workflow.json"; then
   ok "project workflow file matches the hub pin"
 else
   bad "project workflow file does not match the hub pin"
 fi
-proj_skill="$(find "$PROJ_A" -path '*/engineering-judgment/SKILL.md' -print -quit)"
+proj_skill="$(find "$PROJ_A" -path '*/mydevfactory/SKILL.md' -print -quit)"
 if [ -n "$proj_skill" ] && cmp -s "$remote_skill" "$proj_skill"; then
   ok "project skill matches the pinned hub commit"
 else

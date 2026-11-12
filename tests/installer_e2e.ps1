@@ -267,7 +267,7 @@ if ((Test-Path (Join-Path $c.Home ".claude")) -or (Test-Path (Join-Path $c.Home 
 $c = New-Case
 $badPins = Join-Path $c.Case "bad-pins.txt"
 @"
-hub engineering-judgment-skill $Hub
+hub mydevfactory $Hub
 agent requirements-analyst $Req
 agent csharp-expert-developer 0000000000000000000000000000000000000000
 "@ | Set-Content -LiteralPath $badPins -Encoding ASCII
@@ -277,7 +277,7 @@ Assert-Has $c.Err "Failed to download csharp-expert-developer .claude/agents/csh
 Assert-Has $c.Err "0000000000000000000000000000000000000000" "bad ref prints the URL"
 Assert-Has $c.Err "Nothing was installed. Rerunning is safe." "bad ref says rerunning is safe"
 Assert-Clean $c.Home "bad ref does not leave the earlier agent installed"
-Assert-Lacks $c.Out "Skill: engineering-judgment" "bad ref stops before npx skills add"
+Assert-Lacks $c.Out "Skill: mydevfactory" "bad ref stops before npx skills add"
 
 $c = New-Case
 $code = Invoke-Install $c $Install @("--scope", "personal") @{ EJ_RAW_ROOT = "http://127.0.0.1:9" }
@@ -348,7 +348,7 @@ $gitLog = Join-Path $c.Case "git.log"
 $shimPath = $shim + $sep + $OrigPath
 $code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "cursor/feature") @{ EJ_RAW_ROOT = "http://127.0.0.1:9"; EJ_GIT_LOG = $gitLog } $shimPath
 Assert-Status $code 1 "slash branch ref exits 1 before install" $c
-Assert-Has $c.Out "Hub: engineering-judgment-skill @ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (--ref cursor/feature resolved" "slash branch resolves to the commit SHA"
+Assert-Has $c.Out "Hub: mydevfactory @ aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (--ref cursor/feature resolved" "slash branch resolves to the commit SHA"
 Assert-Has $gitLog "refs/heads/cursor/feature" "slash branch asks git for the full branch ref"
 $peelLog = Read-Text $gitLog
 # cmd.exe treats ^ as an escape, so a git.cmd shim records refs/tags/name{} for the peeled pattern.
@@ -358,7 +358,7 @@ if ($peelLog.Contains("refs/tags/cursor/feature^{}") -or $peelLog.Contains("refs
     Bad "slash branch also asks git for a peeled tag"
     Write-Output $peelLog
 }
-Assert-Lacks $c.Out "Skill: engineering-judgment" "slash branch stops before npx"
+Assert-Lacks $c.Out "Skill: mydevfactory" "slash branch stops before npx"
 Assert-Lacks $c.Err "Remote branch cursor" "slash branch does not clone the name before the slash"
 Assert-Clean $c.Home "slash branch writes nothing"
 
@@ -366,7 +366,7 @@ $c = New-Case
 New-GitShim (Join-Path $c.Case "git-shim")
 $code = Invoke-Install $c $Install @("--scope", "personal", "--ref", "v9.9.9") @{ EJ_RAW_ROOT = "http://127.0.0.1:9"; EJ_GIT_LOG = (Join-Path $c.Case "git.log") } ((Join-Path $c.Case "git-shim") + $sep + $OrigPath)
 Assert-Status $code 1 "annotated tag ref exits 1 before install" $c
-Assert-Has $c.Out "Hub: engineering-judgment-skill @ cccccccccccccccccccccccccccccccccccccccc (--ref v9.9.9 resolved" "annotated tag uses the peeled commit"
+Assert-Has $c.Out "Hub: mydevfactory @ cccccccccccccccccccccccccccccccccccccccc (--ref v9.9.9 resolved" "annotated tag uses the peeled commit"
 Assert-Lacks $c.Out "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" "annotated tag does not use the tag object"
 
 $c = New-Case
@@ -404,19 +404,19 @@ exit 1
 }
 $code = Invoke-Install $c $Install @("--scope", "personal", "--ref", $Hub) @{ EJ_RAW_ROOT = "http://127.0.0.1:9"; EJ_GIT_LOG = $shaLog } ($shaShim + $sep + $OrigPath)
 Assert-Status $code 1 "full SHA ref exits 1 before install" $c
-Assert-Has $c.Out "Hub: engineering-judgment-skill @ $Hub (--ref override" "full SHA is used unchanged"
+Assert-Has $c.Out "Hub: mydevfactory @ $Hub (--ref override" "full SHA is used unchanged"
 if (Test-Path -LiteralPath $shaLog) { Bad "full SHA ref called git"; Write-Output (Read-Text $shaLog) } else { Ok "full SHA ref does not ask git to resolve it" }
 Assert-Clean $c.Home "full SHA ref writes nothing"
 
 $remoteBranch = "cursor/reproducible-installs-3628"
-$remoteLines = @( & git ls-remote "https://github.com/dimitriskl/engineering-judgment-skill.git" "refs/heads/$remoteBranch" 2>$null )
+$remoteLines = @( & git ls-remote "https://github.com/dimitriskl/mydevfactory.git" "refs/heads/$remoteBranch" 2>$null )
 $remoteSha = ""
 if ($LASTEXITCODE -eq 0 -and $remoteLines.Count -gt 0) { $remoteSha = ("$($remoteLines[0])" -split "\s+", 2)[0].Trim() }
 if ($remoteSha -match '^[0-9a-fA-F]{40}$') {
     $c = New-Case
     $code = Invoke-Install $c $Install @("--scope", "personal", "--ref", $remoteBranch) @{ EJ_RAW_ROOT = "http://127.0.0.1:9" }
     Assert-Status $code 1 "live slash branch exits 1 before install" $c
-    Assert-Has $c.Out "Hub: engineering-judgment-skill @ $remoteSha (--ref $remoteBranch resolved" "live slash branch matches git ls-remote"
+    Assert-Has $c.Out "Hub: mydevfactory @ $remoteSha (--ref $remoteBranch resolved" "live slash branch matches git ls-remote"
     Assert-Lacks $c.Err "Remote branch cursor" "live slash branch does not clone the short name"
     Assert-Clean $c.Home "live slash branch writes nothing"
 } else {
@@ -438,7 +438,7 @@ $before = Join-Path $c.Case "settings-before.json"
 $code = Invoke-Install $c $Install @("--scope", "personal")
 Assert-Status $code 0 "fresh personal install exits 0" $c
 Assert-Has $c.Out "Scope: personal (" "personal install announces personal scope"
-Assert-Has $c.Out "Hub: engineering-judgment-skill @ $Hub" "personal install prints the hub pin"
+Assert-Has $c.Out "Hub: mydevfactory @ $Hub" "personal install prints the hub pin"
 Assert-Has $c.Out "Agent: requirements-analyst @ $Req" "personal install prints the agent pin"
 Assert-Has $c.Out "updated    $(Join-Path $claudeAgents 'requirements-analyst.md')" "pre-existing agent file is backed up"
 Assert-Has $c.Out ".engineering-workflow.json" "personal install prints the workflow command"
@@ -454,13 +454,13 @@ $remoteToml = Join-Path $c.Case "remote.toml"
 $remoteSkill = Join-Path $c.Case "remote-skill.md"
 Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/requirements-analyst/$Req/.claude/agents/requirements-analyst.md" -OutFile $remoteMd | Out-Null
 Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/requirements-analyst/$Req/.codex/agents/requirements-analyst.toml" -OutFile $remoteToml | Out-Null
-Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/$Hub/skills/engineering-judgment/SKILL.md" -OutFile $remoteSkill | Out-Null
+Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/mydevfactory/$Hub/skills/mydevfactory/SKILL.md" -OutFile $remoteSkill | Out-Null
 $installedMd = Join-Path $claudeAgents "requirements-analyst.md"
 $installedToml = Join-Path $c.Home ".codex/agents/requirements-analyst.toml"
 if ((Get-FileHash $remoteMd).Hash -eq (Get-FileHash $installedMd).Hash -and (Get-FileHash $remoteToml).Hash -eq (Get-FileHash $installedToml).Hash) {
     Ok "installed agent files match the pinned commits"
 } else { Bad "installed agent files do not match the pinned commits" }
-$skill = Get-ChildItem -LiteralPath $c.Home -Force -Recurse -Filter SKILL.md -File | Where-Object { $_.Directory.Name -eq "engineering-judgment" } | Select-Object -First 1
+$skill = Get-ChildItem -LiteralPath $c.Home -Force -Recurse -Filter SKILL.md -File | Where-Object { $_.Directory.Name -eq "mydevfactory" } | Select-Object -First 1
 if ($skill -and (Get-FileHash $remoteSkill).Hash -eq (Get-FileHash $skill.FullName).Hash) { Ok "installed skill matches the pinned hub commit" } else { Bad "installed skill does not match the pinned hub commit" }
 $lock = Get-ChildItem -LiteralPath $c.Home -Recurse -Force -File | Where-Object { $_.Name -eq ".skill-lock.json" -or $_.Name -eq "skills-lock.json" } | Select-Object -First 1
 if ($lock -and (Read-Text $lock.FullName).Contains($Hub)) { Ok "skill lock records the hub pin" } else { Bad "skill lock does not record the hub pin" }
@@ -508,10 +508,10 @@ $marker = (Read-Text (Join-Path $projA ".engineering-judgment/install-scope")).T
 if ($marker -eq "project") { Ok "project scope is stored in the project folder" } else { Bad "project scope marker is missing" }
 if (Test-Path (Join-Path $c.Home ".engineering-judgment/install-scope")) { Bad "project install wrote a user-wide scope file" } else { Ok "project install does not remember project scope for every folder" }
 $remoteWorkflow = Join-Path $c.Case "workflow.json"
-Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/$Hub/.engineering-workflow.json" -OutFile $remoteWorkflow | Out-Null
+Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/dimitriskl/mydevfactory/$Hub/.engineering-workflow.json" -OutFile $remoteWorkflow | Out-Null
 $workflowPath = Join-Path $projA ".engineering-workflow.json"
 if ((Get-FileHash $remoteWorkflow).Hash -eq (Get-FileHash $workflowPath).Hash) { Ok "project workflow file matches the hub pin" } else { Bad "project workflow file does not match the hub pin" }
-$projSkill = Get-ChildItem -LiteralPath $projA -Force -Recurse -Filter SKILL.md -File | Where-Object { $_.Directory.Name -eq "engineering-judgment" } | Select-Object -First 1
+$projSkill = Get-ChildItem -LiteralPath $projA -Force -Recurse -Filter SKILL.md -File | Where-Object { $_.Directory.Name -eq "mydevfactory" } | Select-Object -First 1
 if ($projSkill -and (Get-FileHash $remoteSkill).Hash -eq (Get-FileHash $projSkill.FullName).Hash) { Ok "project skill matches the pinned hub commit" } else { Bad "project skill does not match the pinned hub commit" }
 [IO.File]::WriteAllText($workflowPath, "{`"kept`":true}`n", $utf8)
 $code = Invoke-Install $c $Install @() $null $null "file" $projA

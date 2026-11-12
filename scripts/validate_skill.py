@@ -247,8 +247,8 @@ if pins_path.is_file():
             agents[name] = sha
         else:
             errors.append(f"install/pins.txt:{n} unknown kind {kind}")
-    if not hub or hub[0] != "mydevfactory-skill":
-        errors.append("install/pins.txt hub repo must be mydevfactory-skill")
+    if not hub or hub[0] != "mydevfactory":
+        errors.append("install/pins.txt hub repo must be mydevfactory")
     if len(agents) != 8:
         errors.append(f"install/pins.txt has {len(agents)} agents, expected 8")
 if agents_path.is_file() and agents:

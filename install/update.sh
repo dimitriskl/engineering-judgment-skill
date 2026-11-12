@@ -45,7 +45,7 @@ command -v curl >/dev/null 2>&1 || {
 }
 
 tmp="$(mktemp -d)"
-base="${root}/dimitriskl/engineering-judgment-skill/${ref}/install"
+base="${root}/dimitriskl/mydevfactory/${ref}/install"
 fetch() {
   err="$(mktemp)"
   if ! curl -fsSL --connect-timeout 15 --max-time 60 --retry 2 --retry-delay 1 "$1" -o "$2" 2>"$err"; then

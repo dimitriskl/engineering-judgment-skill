@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs or updates the engineering-judgment skill and the pinned agents (Linux and macOS).
+# Installs or updates the mydevfactory skill and the pinned agents (Linux and macOS).
 # From a checkout:  bash install/install.sh
 # From a pipe:      curl -fsSL <raw>/install/install.sh | bash -s -- --ref <commit-tag-or-branch>
 # Pins: install/pins.txt (full commit SHAs). --ref / EJ_REF overrides only the hub ref.
@@ -25,7 +25,7 @@ usage() {
   cat <<'EOF'
 Usage: install.sh [--scope personal|project] [--ref <commit-tag-or-branch>]
 
-Installs the engineering-judgment skill and the agents pinned in install/pins.txt.
+Installs the mydevfactory skill and the agents pinned in install/pins.txt.
 Personal scope is remembered for your user account. Project scope is remembered only in that folder.
 
   --scope personal|project   where to install (or set EJ_SCOPE)
@@ -90,10 +90,10 @@ resolve_hub_ref_api() {
   require_curl
   encoded="$(urlencode "$ref")"
   body="$(mktemp)"
-  url="https://api.github.com/repos/${OWNER}/engineering-judgment-skill/commits/${encoded}"
+  url="https://api.github.com/repos/${OWNER}/mydevfactory/commits/${encoded}"
   if ! curl -fsSL --connect-timeout 15 --max-time 60 \
       -H "Accept: application/vnd.github+json" \
-      -H "User-Agent: engineering-judgment-install" \
+      -H "User-Agent: mydevfactory-install" \
       -o "$body" "$url"; then
     rm -f "$body"
     die 1 "Could not resolve hub ref '${ref}'.
@@ -131,7 +131,7 @@ Nothing was installed. Rerunning is safe."
     resolve_hub_ref_api "$ref"
     return 0
   fi
-  remote="https://github.com/${OWNER}/engineering-judgment-skill.git"
+  remote="https://github.com/${OWNER}/mydevfactory.git"
   set +e
   listing="$(git ls-remote "$remote" "refs/heads/${ref}" "refs/tags/${ref}" "refs/tags/${ref}^{}" 2>&1)"
   status=$?
@@ -170,7 +170,7 @@ Nothing was installed. Rerunning is safe."
     printf '%s\n' "$branch_sha"
     return 0
   fi
-  die 1 "Could not resolve hub ref '${ref}'. It is not a branch or tag on https://github.com/${OWNER}/engineering-judgment-skill.
+  die 1 "Could not resolve hub ref '${ref}'. It is not a branch or tag on https://github.com/${OWNER}/mydevfactory.
 Pass a tag or a 40-character commit SHA.
 Nothing was installed. Rerunning is safe."
 }
@@ -340,7 +340,7 @@ Run bash install/install.sh from a checkout, or pass --ref <commit-tag-or-branch
 Nothing was installed. Rerunning is safe."
   fi
   require_curl
-  base="${RAW_ROOT}/${OWNER}/engineering-judgment-skill/${REF_OVERRIDE}/install"
+  base="${RAW_ROOT}/${OWNER}/mydevfactory/${REF_OVERRIDE}/install"
   download "$base/pins.txt" "$workdir/pins.txt" "install/pins.txt"
   download "$base/agents.txt" "$workdir/agents.txt" "install/agents.txt"
   pins_file="$workdir/pins.txt"
@@ -532,12 +532,12 @@ done < "$workdir/agent-pins.tsv"
 download "${hub_raw}/.engineering-workflow.json" "$workdir/workflow.json" ".engineering-workflow.json"
 
 skill_url="https://github.com/${OWNER}/${HUB_NAME}/tree/${HUB_REF}"
-echo "Skill: engineering-judgment @ ${HUB_REF}"
+echo "Skill: mydevfactory @ ${HUB_REF}"
 global_flag=""
 if [ "$SCOPE" = "personal" ]; then global_flag="-g"; fi
 use_lf_checkout
 set +e
-npx -y skills add "$skill_url" --skill engineering-judgment -a claude-code codex $global_flag -y </dev/null
+npx -y skills add "$skill_url" --skill mydevfactory -a claude-code codex $global_flag -y </dev/null
 status=$?
 set -e
 if [ "$status" -ne 0 ]; then
