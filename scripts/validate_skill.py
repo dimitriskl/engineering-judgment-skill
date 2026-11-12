@@ -66,7 +66,7 @@ REQUIRED = {
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
     "skills/mydevfactory/SKILL.md": [
-        'version: "3.4.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
+        'version: "3.5.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
         "references/analyst-playbook.md", "references/walkthrough.md", "templates/prd.md",
         "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
     ],
@@ -147,9 +147,9 @@ for f in sorted((root / "skills").rglob("*.md")) + [root / "README.md"] + sorted
 # One-command installer for the skill and every agent, on Windows, Linux and macOS.
 REQUIRED["install/agents.txt"] = ["requirements-analyst", "csharp-expert-developer", "angular-typescript-developer",
                                   "qa-automation-engineer", "senior-code-reviewer"]
-REQUIRED["install/install.sh"] = ["install/agents.txt", "skills add", "install-scope", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE", "model_auto_compact_token_limit"]
+REQUIRED["install/install.sh"] = ["install/agents.txt", "install/pins.txt", "skills add", "install-scope", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE", "model_auto_compact_token_limit", "Node.js 22.20", "Rerunning is safe.", ".bak-"]
 REQUIRED["install/install.ps1"] = REQUIRED["install/install.sh"]
-REQUIRED["README.md"] += ["install/install.ps1 | iex", "install/install.sh | bash"]
+REQUIRED["README.md"] += ["install/install.ps1 | iex", "install/install.sh | bash", "install/pins.txt", "v3.5.0", "tests/installer_e2e.sh", "tests/installer_e2e.ps1"]
 # Locations are clickable (path:line from the repo root) and the Walkthrough moves the editor to each step.
 REQUIRED["skills/mydevfactory/SKILL.md"] += ["path/from/repo/root.ext:line"]
 REQUIRED["skills/mydevfactory/references/walkthrough.md"] += [
@@ -207,6 +207,64 @@ for scope in BANNED_SCOPE:
     for f in files:
         for name in sorted(set(banned_re.findall(f.read_text(encoding="utf-8")))):
             errors.append(f'{f.relative_to(root).as_posix()} mentions banned skill name "{name}"')
+version_path = root / "VERSION"
+if not version_path.is_file():
+    errors.append("Missing VERSION")
+else:
+    version = version_path.read_text(encoding="utf-8").strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        errors.append(f"VERSION is not major.minor.patch: {version}")
+    else:
+        skill_text = (root / "skills/mydevfactory/SKILL.md").read_text(encoding="utf-8")
+        changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
+        if f'version: "{version}"' not in skill_text:
+            errors.append("SKILL.md metadata version does not match VERSION")
+        if f"## {version} " not in changelog:
+            errors.append("CHANGELOG.md has no heading for VERSION")
+pins_path = root / "install/pins.txt"
+agents_path = root / "install/agents.txt"
+hub = None
+agents = {}
+if pins_path.is_file():
+    for n, raw in enumerate(pins_path.read_text(encoding="utf-8").splitlines(), 1):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) != 3:
+            errors.append(f"install/pins.txt:{n} expected 3 fields")
+            continue
+        kind, name, sha = parts
+        if not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+            errors.append(f"install/pins.txt:{n} {name} is not a full commit SHA")
+        if kind == "hub":
+            if hub:
+                errors.append("install/pins.txt has more than one hub line")
+            hub = (name, sha)
+        elif kind == "agent":
+            if name in agents:
+                errors.append(f"install/pins.txt lists {name} more than once")
+            agents[name] = sha
+        else:
+            errors.append(f"install/pins.txt:{n} unknown kind {kind}")
+    if not hub or hub[0] != "mydevfactory":
+        errors.append("install/pins.txt hub repo must be mydevfactory")
+    if len(agents) != 8:
+        errors.append(f"install/pins.txt has {len(agents)} agents, expected 8")
+if agents_path.is_file() and agents:
+    listed = []
+    for raw in agents_path.read_text(encoding="utf-8").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if line:
+            listed.append(line)
+    if set(listed) != set(agents):
+        errors.append("install/agents.txt and install/pins.txt list different agents")
+for rel in ("install/install.sh", "install/install.ps1", "install/update.sh", "install/update.ps1"):
+    text = (root / rel).read_text(encoding="utf-8")
+    if re.search(r"/main(?:/|[\"'\s]|$)", text):
+        errors.append(f"{rel} still references a /main ref")
+if (root / "docs/task-cards/latest-anthropic-models.md").exists():
+    errors.append("docs/task-cards/latest-anthropic-models.md should not be published")
 if errors:
     for error in errors:
         print("ERROR:", error, file=sys.stderr)

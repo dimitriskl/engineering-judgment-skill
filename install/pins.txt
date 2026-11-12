@@ -1,0 +1,15 @@
+# Pinned commits for install.sh and install.ps1. This is the only pin list.
+# Format: hub|agent <repository> <40-character commit SHA>
+# Owner of every repository: dimitriskl
+# Do not put a branch or a tag here. To try a hub branch or tag, pass --ref or set EJ_REF.
+# How to bump a pin and tag a release: CONTRIBUTING.md.
+
+hub mydevfactory 92021a098adf33a71ed0bf6998ee4e9a0f9db253
+agent requirements-analyst aac401f0c1b3c1803b015d27ff20be8fdc652551
+agent csharp-expert-developer 9c772c160df54453c15de5a862cbd6b768858912
+agent angular-typescript-developer 4fa1a7e34e44ca588e135cdbe378655814c35eda
+agent qa-automation-engineer 3437c32a5a0fc9760ffeda63d6b84704edae2869
+agent senior-code-reviewer b4b783a160034aad6a2f0696b701a4a1c715a791
+agent ui-ux-developer c2f1be2a490b1107225c29140ff1785719bf3274
+agent software-architect f1b39167aca1a35fbb1e84590d60a590a115339a
+agent data-analyst-bi-expert bc1bb49eb4baf65df96e9aa9f9b30cbc35d162f0

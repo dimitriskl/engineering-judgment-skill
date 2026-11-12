@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.5.0 — Reproducible installs (2026-11-10)
+
+- Pin the hub and all eight agents to full commit SHAs in `install/pins.txt`, shared by the bash and PowerShell installers. Fetches no longer follow `main`. `--ref` or `EJ_REF` overrides the hub ref. A branch or tag, including a branch name that contains a slash, is resolved to a commit SHA first.
+- Release steps for pins are documented in `CONTRIBUTING.md`.
+- Require Node.js 22.20 or newer before installing, and stop with an install link when `node` or `npx` is missing or older.
+- Remember personal scope for the user account, and project scope only in that project folder.
+- Keep every replaced agent file as `<file>.bak-YYYYMMDD-HHMMSS` in UTC, including earlier backups.
+- Download every remote file before writing the install. On failure, name the file and URL, leave the destination unchanged, and say that rerunning is safe.
+- Add installer tests (`bash tests/installer_e2e.sh`, `pwsh -File tests/installer_e2e.ps1`).
+- Remove the internal task card under `docs/task-cards` from the published tree.
+
 ## 3.4.0 — Clear communication and walkthrough maps (2026-11-06)
 
 - Use accessible language while preserving exact code references and evidence.

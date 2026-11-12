@@ -17,24 +17,41 @@ AI coding agents can write a feature in minutes. That does **not** mean the team
 
 ## 30-second start
 
-**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project directory (Node.js 22.20 or later required):
-
-```powershell
-# Windows (PowerShell)
-irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.ps1 | iex
-```
+**One command installs the skill and all the [agents](#agents-use-mine-or-map-your-own)** for Claude Code and Codex. Run it from your project folder. Node.js 22.20 or later is required; the installer checks this first and stops with a link to [nodejs.org](https://nodejs.org) if Node is missing or older.
 
 ```bash
 # Linux and macOS
-curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/install/install.sh | bash -s -- --ref v3.5.0
 ```
 
-- **First run** asks once: **personal** (all your projects: `~/.claude`, `~/.codex`) or **project** (only the current folder).
-- **Later runs** reuse that answer and **update** whatever is already installed. Changed agent files are replaced, and your old copy is kept as `<file>.bak`. To change the answer, run with `--scope personal|project` (bash: `… | bash -s -- --scope project`) or set `$env:EJ_SCOPE` (PowerShell).
-- It also sets **auto-compact at 40%** (below) if you haven't set it yourself, and in project scope adds `.engineering-workflow.json` if the project has none.
-- The agent list lives in [`install/agents.txt`](install/agents.txt).
+```powershell
+# Windows (PowerShell)
+$env:EJ_REF = 'v3.5.0'
+irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/install/install.ps1 | iex
+```
 
-Only want the skill? `npx skills add dimitriskl/mydevfactory --skill mydevfactory`, then choose your coding agent when prompted.
+Prefer to read the script first? Clone the tag anywhere, then run it **from your project folder**:
+
+```bash
+git clone --branch v3.5.0 https://github.com/dimitriskl/mydevfactory.git ~/src/mydevfactory
+cd /path/to/your/project
+bash ~/src/mydevfactory/install/install.sh      # or: pwsh -File ~/src/mydevfactory/install/install.ps1
+```
+
+Every install is reproducible: the skill and each agent are fetched at the commit SHAs listed in [`install/pins.txt`](install/pins.txt), never from `main`. Use a tag or a full commit SHA with `--ref`.
+
+- **First run** asks once: **personal** (all your projects: `~/.agents`, `~/.claude`, `~/.codex`) or **project** (only the current folder). With no terminal, personal is the default.
+- **Personal scope is remembered for your user** (`~/.engineering-judgment/install-scope`). **Project scope is remembered only in that folder** (`<project>/.engineering-judgment/install-scope`). A project install does not affect later runs in other folders.
+- **Later runs** reuse the remembered scope and update what is already installed. A changed agent file is replaced and the previous copy is kept as `<file>.bak-YYYYMMDD-HHMMSS` (UTC). Older backups stay. To choose again: `--scope personal` or `--scope project` (bash: `bash install/install.sh --scope project`; PowerShell: `--scope project` or `$env:EJ_SCOPE`).
+- Every remote file is downloaded before anything is written. If a download fails, the installer names the file and URL, writes nothing, and says that rerunning is safe.
+- In project scope it adds `.engineering-workflow.json` when the folder has none. Commit that file to share the agent map. `.agents/`, `.claude/`, `.codex/`, `.engineering-judgment/`, and the skills lock are local tool state.
+- It also sets **auto-compact at 40%** (below) if you haven't set it yourself.
+
+Only want the skill?
+
+```bash
+npx skills add https://github.com/dimitriskl/mydevfactory/tree/v3.5.0 --skill mydevfactory
+```
 
 Then open a **new agent session**. Example: add **two-factor authentication (2FA) to login** and walk through the result in the Walkthrough before you sign off.
 
@@ -344,6 +361,7 @@ Example (macOS/Linux):
 
 ```bash
 git clone https://github.com/dimitriskl/mydevfactory.git
+git -C mydevfactory checkout v3.5.0
 mkdir -p YourProject/.agents/skills
 cp -R mydevfactory/skills/mydevfactory YourProject/.agents/skills/
 ```
@@ -352,6 +370,7 @@ Example (PowerShell):
 
 ```powershell
 git clone https://github.com/dimitriskl/mydevfactory.git
+git -C mydevfactory checkout v3.5.0
 New-Item -ItemType Directory -Force C:\src\YourProject\.claude\skills | Out-Null
 Copy-Item -Recurse .\mydevfactory\skills\mydevfactory C:\src\YourProject\.claude\skills\
 ```
@@ -364,17 +383,20 @@ Use the corresponding destination for your agent. Restart its session, then invo
 
 Check [CHANGELOG.md](CHANGELOG.md) first. A new major version (for example 2.x → 3.0.0) can change how the skill works or what `.engineering-workflow.json` contains.
 
-**Update the skill and all agents together** (Node.js 22.20 or later):
+**Update the skill and all agents together** (Node.js 22.20 or later), from tag `v3.5.0`:
 
 ```powershell
-irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/update.ps1 | iex
+$env:EJ_REF = 'v3.5.0'
+irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/install/update.ps1 | iex
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/v3.5.0/install/update.sh | bash -s -- --ref v3.5.0
 ```
 
-The updater runs the installer again and reuses the saved personal or project scope. For a project install, run it from that project directory. To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `... | bash -s -- --scope project` in bash. Changed agent files are backed up as `<file>.bak`; existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
+From a checkout of that tag, run `bash install/update.sh` or `pwsh -File install/update.ps1` **from your project folder**, not from the skill checkout. The updater runs the installer again and reuses the saved personal scope, or the project scope remembered in the current folder. If you used project scope before 3.5.0, that choice was saved for every folder; run once with `--scope project` in the project you want (or `--scope personal`). To select a scope, set `$env:EJ_SCOPE = 'personal'` or `'project'` in PowerShell, or use `--scope project`. Changed agent files are backed up as `<file>.bak-YYYYMMDD-HHMMSS` (UTC) and older backups are kept. Existing workflow configuration and auto-compact values are kept. Missing skill or agent files are installed. The installer may add missing configuration and auto-compact settings as described in the 30-second start.
+
+The installer records the installed skill repository and resolved commit in `.engineering-judgment/skill-pin.json` under the chosen scope. Use the installer or updater above to update this skill: generic `skills update` does not track its temporary checkout. The receipt describes the last successful skill installation; it does not verify later local edits.
 
 **Installed with `npx skills`** (Node.js 22.20 or later):
 
@@ -391,7 +413,8 @@ Run in a project folder, `update` may update only that project's skills. If you 
 macOS / Linux:
 
 ```bash
-cd mydevfactory && git pull && cd ..
+git -C mydevfactory fetch --tags
+git -C mydevfactory checkout v3.5.0
 rm -rf YourProject/.agents/skills/mydevfactory
 cp -R mydevfactory/skills/mydevfactory YourProject/.agents/skills/
 ```
@@ -399,7 +422,8 @@ cp -R mydevfactory/skills/mydevfactory YourProject/.agents/skills/
 PowerShell:
 
 ```powershell
-git -C .\mydevfactory pull
+git -C .\mydevfactory fetch --tags
+git -C .\mydevfactory checkout v3.5.0
 Remove-Item -Recurse -Force C:\src\YourProject\.claude\skills\mydevfactory
 Copy-Item -Recurse .\mydevfactory\skills\mydevfactory C:\src\YourProject\.claude\skills\
 ```
@@ -425,6 +449,8 @@ Use the same skills folder you installed to (`.agents/skills/`, `.claude/skills/
 See [a real-world-style walkthrough](examples/live-session.md) and the [skill source](skills/mydevfactory/SKILL.md).
 
 ## Contributing
+
+Installer tests: `bash tests/installer_e2e.sh` and `pwsh -File tests/installer_e2e.ps1`. Pin and release steps are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Bug reports, false-positive reviews, missing risk checks, documentation fixes, and integrations for other stacks are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md). Especially valuable: **reproducible examples where the skill made a bad engineering call**.
 

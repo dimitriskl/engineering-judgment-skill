@@ -1,117 +1,535 @@
-# Installs or updates the mydevfactory skill and all of the author's agents (Windows PowerShell 5.1 or 7+).
-#   irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.ps1 | iex
-# The first run asks where to install; later runs reuse that answer and update everything in place.
-# Change the answer with:  $env:EJ_SCOPE = "personal"   (or "project"), then run the command again.
+# Installs or updates the mydevfactory skill and the pinned agents (Windows PowerShell 5.1 or 7+).
+# From a checkout:  pwsh -File install/install.ps1
+# From a pipe:      $env:EJ_REF = '<commit-tag-or-branch>'; irm <raw>/install/install.ps1 | iex
+# Pins: install/pins.txt (full commit SHAs). --ref / EJ_REF overrides only the hub ref.
+# Change scope with --scope personal|project or EJ_SCOPE. Project scope sticks to that folder.
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
+if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
+    $PSNativeCommandUseErrorActionPreference = $false
+}
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
+$script:RanAsFile = [bool]$PSCommandPath
 $Owner = "dimitriskl"
-$Raw = if ($env:EJ_RAW) { $env:EJ_RAW } else { "https://raw.githubusercontent.com/$Owner/mydevfactory/main" }
-$UserHome = $env:USERPROFILE
-$StateDir = Join-Path $UserHome ".engineering-judgment"
-$StateFile = Join-Path $StateDir "install-scope"
-$Scope = $env:EJ_SCOPE
+$RawRoot = if ($env:EJ_RAW_ROOT) { $env:EJ_RAW_ROOT.Trim().TrimEnd("/") } else { "https://raw.githubusercontent.com" }
+$Scope = if ($env:EJ_SCOPE) { $env:EJ_SCOPE.Trim() } else { "" }
+$RefOverride = if ($env:EJ_REF) { $env:EJ_REF.Trim() } else { "" }
+$ExplicitScope = [bool]$Scope
 
-function Get-Bytes([string]$Url) {
-    if (Test-Path -LiteralPath $Url) { return [IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $Url)) }
-    return (Invoke-WebRequest -UseBasicParsing -Uri $Url).Content
+function Fail([string]$Message, [int]$Code = 1) {
+    [Console]::Error.WriteLine($Message)
+    if ($script:RanAsFile) { exit $Code }
+    $global:LASTEXITCODE = $Code
+    throw $Message
 }
-function Get-Text([string]$Url) {
-    $c = Get-Bytes $Url
-    if ($c -is [string]) { return $c }
-    return [Text.Encoding]::UTF8.GetString($c)
-}
-function Save-Url([string]$Url, [string]$Path) {
-    $c = Get-Bytes $Url
-    if ($c -is [string]) { $c = [Text.Encoding]::UTF8.GetBytes($c) }
-    [IO.File]::WriteAllBytes($Path, $c)
-}
-function Set-AgentFile([string]$New, [string]$Target) {
-    # Install, update (keeping a .bak of the old file) or leave as is.
-    if (-not (Test-Path -LiteralPath $Target)) { Copy-Item $New $Target; "    installed  $Target"; return }
-    if ((Get-FileHash $New).Hash -eq (Get-FileHash $Target).Hash) { "    up to date $Target"; return }
-    Copy-Item $Target "$Target.bak" -Force; Copy-Item $New $Target -Force
-    "    updated    $Target (old file: $Target.bak)"
-}
+function Get-Usage {
+    @"
+Usage: install.ps1 [--scope personal|project] [--ref <commit-tag-or-branch>]
 
-if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-    throw "Node.js 22.20 or later is required (npx not found): https://nodejs.org"
+Installs the mydevfactory skill and the agents pinned in install/pins.txt.
+Personal scope is remembered for your user account. Project scope is remembered only in that folder.
+
+  --scope personal|project   where to install (or set EJ_SCOPE)
+  --ref <ref>                hub commit, tag, or branch for this run (or set EJ_REF)
+  EJ_PINS                    path to an alternate pins file
+  EJ_RAW_ROOT                raw download host (default https://raw.githubusercontent.com)
+"@
 }
-
-# --- Scope: ask once, then remember -------------------------------------------------
-if (-not $Scope -and (Test-Path $StateFile)) { $Scope = (Get-Content $StateFile -Raw).Trim() }
-if (-not $Scope) {
-    "Where should the skill and agents be installed?"
-    "  1) personal - all your projects ($UserHome\.claude, $UserHome\.codex)   [default]"
-    "  2) project  - only this folder: $(Get-Location)"
-    $answer = Read-Host "Choose 1 or 2"
-    $Scope = if ($answer -in @("2", "project")) { "project" } else { "personal" }
+function Test-Console {
+    try { return (-not [Console]::IsInputRedirected) -and (-not [Console]::IsOutputRedirected) }
+    catch { return $false }
 }
-if ($Scope -notin @("personal", "project")) { throw "EJ_SCOPE must be personal or project, not '$Scope'." }
-New-Item -ItemType Directory -Force $StateDir | Out-Null
-Set-Content -Path $StateFile -Value $Scope -NoNewline
-
-$Base = if ($Scope -eq "personal") { $UserHome } else { (Get-Location).Path }
-"Scope: $Scope ($Base). To change it: `$env:EJ_SCOPE = 'personal' or 'project', then run again."
-
-# --- 1. Skill (npx skills add installs or updates) -----------------------------------
-"Skill: mydevfactory"
-$skillArgs = @("-y", "skills", "add", "$Owner/mydevfactory", "--skill", "mydevfactory", "-a", "claude-code", "codex")
-if ($Scope -eq "personal") { $skillArgs += "-g" }
-$skillArgs += "-y"
-& npx @skillArgs
-if ($LASTEXITCODE -ne 0) { throw "Skill install failed (npx exit code $LASTEXITCODE)." }
-
-# --- 2. Agents: install, or update when the published file changed ------------------
-$Tmp = Join-Path ([IO.Path]::GetTempPath()) ("ej-" + [guid]::NewGuid())
-New-Item -ItemType Directory -Force $Tmp, "$Base\.claude\agents", "$Base\.codex\agents" | Out-Null
-try {
-    $agents = (Get-Text "$Raw/install/agents.txt") -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith("#") }
-    foreach ($agent in $agents) {
-        "Agent: $agent"
-        $repo = "https://raw.githubusercontent.com/$Owner/$agent/main"
-        Save-Url "$repo/.claude/agents/$agent.md" "$Tmp\$agent.md"
-        Save-Url "$repo/.codex/agents/$agent.toml" "$Tmp\$agent.toml"
-        Set-AgentFile "$Tmp\$agent.md" "$Base\.claude\agents\$agent.md"
-        Set-AgentFile "$Tmp\$agent.toml" "$Base\.codex\agents\$agent.toml"
+function Assert-Node {
+    # Checked before scope is saved and before any download or npx call.
+    if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+        Fail "Node.js 22.20 or later is required, but node was not found.`nInstall Node.js 22.20 or newer from https://nodejs.org and run this installer again.`nNothing was installed. Rerunning is safe."
     }
-} finally { Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue }
-
-# --- 3. Auto-compact at 40% (only added when not set; your own values are kept) -----
-$utf8 = New-Object Text.UTF8Encoding($false)
-$settingsPath = "$Base\.claude\settings.json"
-$settings = if (Test-Path $settingsPath) { Get-Content $settingsPath -Raw | ConvertFrom-Json } else { $null }
-if (-not $settings) { $settings = New-Object PSObject }
-if (-not $settings.PSObject.Properties["env"]) { $settings | Add-Member -NotePropertyName env -NotePropertyValue (New-Object PSObject) }
-if ($settings.env.PSObject.Properties["CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"]) {
-    "Claude Code: auto-compact already set ($($settings.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE)) in $settingsPath"
-} else {
-    $settings.env | Add-Member -NotePropertyName CLAUDE_AUTOCOMPACT_PCT_OVERRIDE -NotePropertyValue "40"
-    [IO.File]::WriteAllText($settingsPath, ($settings | ConvertTo-Json -Depth 50) + "`n", $utf8)
-    "Claude Code: auto-compact at 40% set in $settingsPath"
+    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
+        Fail "Node.js 22.20 or later is required, but npx was not found.`nInstall Node.js 22.20 or newer from https://nodejs.org and run this installer again.`nNothing was installed. Rerunning is safe."
+    }
+    $ver = ""
+    try { $ver = (& node -v 2>$null | Out-String).Trim() } catch { $ver = "" }
+    if ($ver -notmatch '^v(\d+)\.(\d+)(\.\d+)?$') {
+        $shown = if ($ver) { $ver } else { "nothing" }
+        Fail "Node.js 22.20 or later is required. Could not read the version from node -v (got: $shown).`nInstall Node.js 22.20 or newer from https://nodejs.org and run this installer again.`nNothing was installed. Rerunning is safe."
+    }
+    $major = [int]$Matches[1]
+    $minor = [int]$Matches[2]
+    if ($major -lt 22 -or ($major -eq 22 -and $minor -lt 20)) {
+        Fail "Node.js 22.20 or later is required. Found $ver.`nInstall Node.js 22.20 or newer from https://nodejs.org and run this installer again.`nNothing was installed. Rerunning is safe."
+    }
 }
-$tomlPath = "$Base\.codex\config.toml"
-$toml = if (Test-Path $tomlPath) { [IO.File]::ReadAllText($tomlPath) } else { "" }
-if ($toml -match "(?m)^\s*model_auto_compact_token_limit\s*=") {
-    "Codex: model_auto_compact_token_limit already set in $tomlPath"
-} else {
-    # Top-level keys must come before the first [table], or TOML puts them inside that table.
-    $line = "model_auto_compact_token_limit = 160000  # 40% of a 400,000-token context window`n"
-    $m = [regex]::Match($toml, "(?m)^[ \t]*\[")
-    $pre = $(if ($m.Success) { $toml.Substring(0, $m.Index) } else { $toml }).TrimEnd()
-    $toml = $(if ($pre) { "$pre`n" } else { "" }) + $line + $(if ($m.Success) { "`n" + $toml.Substring($m.Index) } else { "" })
-    [IO.File]::WriteAllText($tomlPath, $toml, $utf8)
-    "Codex: auto-compact at 160000 tokens set in $tomlPath"
+function Save-Download([string]$Url, [string]$Dest, [string]$Label) {
+    try {
+        Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Dest -TimeoutSec 60 | Out-Null
+    } catch {
+        if (Test-Path -LiteralPath $Dest) { Remove-Item -LiteralPath $Dest -Force -ErrorAction SilentlyContinue }
+        Fail "Failed to download $Label.`nURL: $Url`n$($_.Exception.Message)`nNothing was installed. Rerunning is safe."
+    }
+    if (-not (Test-Path -LiteralPath $Dest) -or (Get-Item -LiteralPath $Dest).Length -eq 0) {
+        Fail "Failed to download ${Label}: the file was empty.`nURL: $Url`nNothing was installed. Rerunning is safe."
+    }
+}
+function Get-BackupPath([string]$Target) {
+    $stamp = [DateTime]::UtcNow.ToString("yyyyMMdd-HHmmss")
+    $candidate = "$Target.bak-$stamp"
+    $n = 2
+    while (Test-Path -LiteralPath $candidate) {
+        $candidate = "$Target.bak-$stamp-$n"
+        $n++
+    }
+    return $candidate
+}
+function Install-AgentFile([string]$Source, [string]$Target) {
+    $dir = Split-Path -Parent $Target
+    if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+    if (-not (Test-Path -LiteralPath $Target)) {
+        Copy-Item -LiteralPath $Source -Destination $Target
+        Write-Output "    installed  $Target"
+        return
+    }
+    if ((Get-FileHash -LiteralPath $Source).Hash -eq (Get-FileHash -LiteralPath $Target).Hash) {
+        Write-Output "    up to date $Target"
+        return
+    }
+    $bak = Get-BackupPath $Target
+    Copy-Item -LiteralPath $Target -Destination $bak
+    Copy-Item -LiteralPath $Source -Destination $Target -Force
+    Write-Output "    updated    $Target (old file: $bak)"
 }
 
-# --- 4. Agent mapping for the skill -------------------------------------------------
-if ($Scope -eq "project") {
-    if (Test-Path ".engineering-workflow.json") { "Config: .engineering-workflow.json kept as is" }
-    else { Save-Url "$Raw/.engineering-workflow.json" "$Base\.engineering-workflow.json"; "Config: .engineering-workflow.json added" }
-} else {
-    "Config: in each project root, add .engineering-workflow.json:"
-    "  irm $Raw/.engineering-workflow.json -OutFile .engineering-workflow.json"
+$scriptArgs = @($args)
+$i = 0
+while ($i -lt $scriptArgs.Count) {
+    $token = "$($scriptArgs[$i])"
+    if ($token -eq "--help" -or $token -eq "-h" -or $token -eq "-?") {
+        Write-Output (Get-Usage)
+        if ($script:RanAsFile) { exit 0 }
+        return
+    }
+    if ($token -eq "--scope" -or $token -eq "-Scope" -or $token -eq "-scope") {
+        $next = if ($i + 1 -lt $scriptArgs.Count) { "$($scriptArgs[$i + 1])" } else { "" }
+        if (-not $next -or $next.StartsWith("-")) {
+            Fail "Missing value for --scope.`n$(Get-Usage)`nNothing was installed. Rerunning is safe." 2
+        }
+        $Scope = $next
+        $ExplicitScope = $true
+        $i += 2
+        continue
+    }
+    if ($token -eq "--ref" -or $token -eq "-Ref" -or $token -eq "-ref") {
+        $next = if ($i + 1 -lt $scriptArgs.Count) { "$($scriptArgs[$i + 1])" } else { "" }
+        if (-not $next -or $next.StartsWith("-")) {
+            Fail "Missing value for --ref.`n$(Get-Usage)`nNothing was installed. Rerunning is safe." 2
+        }
+        $RefOverride = $next
+        $i += 2
+        continue
+    }
+    Fail "Unknown option: $token`n$(Get-Usage)`nNothing was installed. Rerunning is safe." 2
 }
 
-"Done. Start a new Claude Code or Codex session to use the updated skill and agents."
+Assert-Node
+
+if ($env:EJ_RAW) {
+    Fail "EJ_RAW is no longer used. Set EJ_REF to a commit, tag, or branch, or set EJ_PINS to a pins file.`nNothing was installed. Rerunning is safe."
+}
+if ($RawRoot -notmatch '^https?://') {
+    Fail "EJ_RAW_ROOT must start with http:// or https://.`nNothing was installed. Rerunning is safe."
+}
+$UserHome = $env:USERPROFILE
+if (-not $UserHome) { $UserHome = $env:HOME }
+if (-not $UserHome) {
+    Fail "USERPROFILE or HOME must be set so the installer can find your user directory.`nNothing was installed. Rerunning is safe."
+}
+
+function Resolve-HubRef([string]$Ref) {
+    # A branch or tag becomes the commit SHA before any URL is built. A 40-character
+    # SHA is kept as given. Slash branches otherwise look like a branch plus a path
+    # to the skills CLI (it would clone the branch named before the first slash).
+    if ($Ref -match '^[0-9a-fA-F]{40}$') { return $Ref }
+    if ($Ref -notmatch '^[A-Za-z0-9._/-]+$' -or $Ref.StartsWith("/") -or $Ref.EndsWith("/") -or $Ref.Contains("//") -or $Ref.Contains("..")) {
+        Fail "Hub ref '$Ref' is not a full commit SHA, tag, or branch name.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+    }
+    $remote = "https://github.com/$Owner/mydevfactory.git"
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        $listing = & git ls-remote $remote "refs/heads/$Ref" "refs/tags/$Ref" "refs/tags/${Ref}^{}"
+        if ($LASTEXITCODE -ne 0) {
+            Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+        }
+        $branchSha = ""
+        $tagSha = ""
+        $peeled = ""
+        foreach ($line in @($listing)) {
+            $text = "$line".Trim()
+            if (-not $text) { continue }
+            $parts = $text -split "`t", 2
+            if ($parts.Count -lt 2) { continue }
+            $sha = $parts[0].Trim()
+            $name = $parts[1].Trim()
+            if ($name -eq "refs/heads/$Ref") { $branchSha = $sha }
+            elseif ($name -eq "refs/tags/$Ref") { $tagSha = $sha }
+            elseif ($name -eq "refs/tags/${Ref}^{}") { $peeled = $sha }
+        }
+        $tagCommit = $tagSha
+        if ($peeled) { $tagCommit = $peeled }
+        if ($branchSha -and $tagCommit -and $branchSha -ne $tagCommit) {
+            Fail "Hub ref '$Ref' matches both a branch ($branchSha) and a tag ($tagCommit).`nPass the full commit SHA you want.`nNothing was installed. Rerunning is safe."
+        }
+        if ($tagCommit) { return $tagCommit }
+        if ($branchSha) { return $branchSha }
+        Fail "Could not resolve hub ref '$Ref'. It is not a branch or tag on https://github.com/$Owner/mydevfactory.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+    }
+    $encoded = [Uri]::EscapeDataString($Ref)
+    $url = "https://api.github.com/repos/$Owner/mydevfactory/commits/$encoded"
+    try {
+        $resp = Invoke-RestMethod -Uri $url -Headers @{ Accept = "application/vnd.github+json"; "User-Agent" = "mydevfactory-install" } -TimeoutSec 60
+    } catch {
+        Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+    }
+    $sha = "$($resp.sha)"
+    if ($sha -match '^[0-9a-fA-F]{40}$') { return $sha }
+    Fail "Could not resolve hub ref '$Ref'.`nPass a tag or a 40-character commit SHA.`nNothing was installed. Rerunning is safe."
+}
+function Enable-LfCheckout {
+    # The skills CLI checks the skill out with git. Force LF so a Windows
+    # core.autocrlf=true setting does not change the installed bytes.
+    $idx = 0
+    if ($env:GIT_CONFIG_COUNT -match '^\d+$') { $idx = [int]$env:GIT_CONFIG_COUNT }
+    Set-Item -Path "Env:GIT_CONFIG_KEY_$idx" -Value "core.autocrlf"
+    Set-Item -Path "Env:GIT_CONFIG_VALUE_$idx" -Value "false"
+    $idx++
+    Set-Item -Path "Env:GIT_CONFIG_KEY_$idx" -Value "core.eol"
+    Set-Item -Path "Env:GIT_CONFIG_VALUE_$idx" -Value "lf"
+    $idx++
+    $env:GIT_CONFIG_COUNT = "$idx"
+}
+
+$ScriptDir = $null
+if ($PSCommandPath -and (Test-Path -LiteralPath $PSCommandPath)) {
+    $ScriptDir = Split-Path -Parent $PSCommandPath
+}
+$Tmp = Join-Path ([IO.Path]::GetTempPath()) ("ej-" + [guid]::NewGuid().ToString("n"))
+New-Item -ItemType Directory -Force -Path $Tmp | Out-Null
+$utf8 = New-Object System.Text.UTF8Encoding $false
+
+$OriginalRef = $RefOverride
+try {
+    if ($RefOverride) { $RefOverride = Resolve-HubRef $RefOverride }
+    $pinsFile = $null
+    $agentsFile = $null
+    if ($env:EJ_PINS) {
+        $pinsFile = $env:EJ_PINS
+        if (-not (Test-Path -LiteralPath $pinsFile)) {
+            Fail "Pins file not found: $pinsFile`nNothing was installed. Rerunning is safe."
+        }
+    } elseif ($ScriptDir -and (Test-Path -LiteralPath (Join-Path $ScriptDir "pins.txt"))) {
+        $pinsFile = Join-Path $ScriptDir "pins.txt"
+        $agentsFile = Join-Path $ScriptDir "agents.txt"
+    } else {
+        if (-not $RefOverride) {
+            Fail "This installer was started from a pipe and has no local install/pins.txt.`nRun it from a checkout, or pass --ref <commit-tag-or-branch> (or set EJ_REF) so install/pins.txt can be downloaded.`nNothing was installed. Rerunning is safe."
+        }
+        $base = "$RawRoot/$Owner/mydevfactory/$RefOverride/install"
+        $pinsFile = Join-Path $Tmp "pins.txt"
+        $agentsFile = Join-Path $Tmp "agents.txt"
+        Save-Download "$base/pins.txt" $pinsFile "install/pins.txt"
+        Save-Download "$base/agents.txt" $agentsFile "install/agents.txt"
+        $ScriptDir = $Tmp
+    }
+
+    $HubName = ""
+    $HubSha = ""
+    $agents = @()
+    $seen = @{}
+    $lineNo = 0
+    foreach ($raw in [IO.File]::ReadAllLines($pinsFile)) {
+        $lineNo++
+        $line = ($raw -split "#", 2)[0].Trim()
+        if (-not $line) { continue }
+        $parts = $line -split '\s+'
+        if ($parts.Count -ne 3) {
+            Fail "install/pins.txt:${lineNo} must be: hub|agent <repo> <40-character sha>`nNothing was installed. Rerunning is safe."
+        }
+        $kind = $parts[0]
+        $name = $parts[1]
+        $sha = $parts[2]
+        if ($name -notmatch '^[A-Za-z0-9._-]+$') {
+            Fail "install/pins.txt:${lineNo} has an invalid repository name '$name'.`nNothing was installed. Rerunning is safe."
+        }
+        if ($sha -notmatch '^[0-9a-fA-F]{40}$') {
+            Fail "Pin for $name must be a full 40-character commit SHA, not '$sha'. Branches and tags are not pins.`nNothing was installed. Rerunning is safe."
+        }
+        if ($kind -eq "hub") {
+            if ($HubName) { Fail "install/pins.txt has more than one hub line.`nNothing was installed. Rerunning is safe." }
+            $HubName = $name
+            $HubSha = $sha
+        } elseif ($kind -eq "agent") {
+            if ($seen.ContainsKey($name)) { Fail "install/pins.txt lists $name more than once.`nNothing was installed. Rerunning is safe." }
+            $seen[$name] = $true
+            $agents += [pscustomobject]@{ Name = $name; Sha = $sha }
+        } else {
+            Fail "install/pins.txt:${lineNo} has an unknown kind '$kind'. Use hub or agent.`nNothing was installed. Rerunning is safe."
+        }
+    }
+    if (-not $HubSha) { Fail "install/pins.txt has no hub line.`nNothing was installed. Rerunning is safe." }
+    if ($agents.Count -lt 1) { Fail "install/pins.txt has no agent lines.`nNothing was installed. Rerunning is safe." }
+
+    if (-not $env:EJ_PINS) {
+        if (-not $agentsFile -or -not (Test-Path -LiteralPath $agentsFile)) {
+            Fail "Missing install/agents.txt beside the pins file.`nNothing was installed. Rerunning is safe."
+        }
+        $listed = @()
+        foreach ($raw in [IO.File]::ReadAllLines($agentsFile)) {
+            $line = ($raw -split "#", 2)[0].Trim()
+            if ($line) { $listed += $line }
+        }
+        $pinNames = @($agents | ForEach-Object { $_.Name } | Sort-Object)
+        $listNames = @($listed | Sort-Object)
+        $pinKey = $pinNames -join "`n"
+        $listKey = $listNames -join "`n"
+        $pinUnique = @($pinNames | Select-Object -Unique)
+        $listUnique = @($listNames | Select-Object -Unique)
+        if ($pinUnique.Count -ne $pinNames.Count -or $listUnique.Count -ne $listNames.Count -or $pinKey -ne $listKey) {
+            Fail "install/pins.txt and install/agents.txt list different agents.`nNothing was installed. Rerunning is safe."
+        }
+    }
+
+    $reason = "chosen"
+    $cwd = (Get-Location).Path
+    if (-not $ExplicitScope) {
+        $cwdMarker = Join-Path (Join-Path $cwd ".engineering-judgment") "install-scope"
+        $globalFile = Join-Path (Join-Path $UserHome ".engineering-judgment") "install-scope"
+        if (Test-Path -LiteralPath $cwdMarker) {
+            $markerValue = ([IO.File]::ReadAllText($cwdMarker)).Trim()
+            if ($markerValue -ne "project") {
+                Fail "Project scope file $cwdMarker must contain project, not '$markerValue'.`nNothing was installed. Rerunning is safe." 2
+            }
+            $Scope = "project"
+            $reason = "remembered-project"
+        } elseif (Test-Path -LiteralPath $globalFile) {
+            $globalValue = ([IO.File]::ReadAllText($globalFile)).Trim()
+            if ($globalValue -eq "personal") {
+                $Scope = "personal"
+                $reason = "remembered-personal"
+            } elseif ($globalValue -eq "project") {
+                Fail "A previous install remembered project scope for every folder. Project scope now applies only to the folder it was installed in.`nNothing was installed. Run again in that project with --scope project, or choose a personal install with --scope personal.`nRerunning is safe." 2
+            } else {
+                Fail "Scope must be personal or project, not '$globalValue'.`nNothing was installed. Rerunning is safe." 2
+            }
+        } elseif (Test-Console) {
+            Write-Output "Where should the skill and agents be installed?"
+            Write-Output "  1) personal - all your projects (~/.agents, ~/.claude, ~/.codex)   [default]"
+            Write-Output "  2) project  - only this folder: $cwd"
+            $answer = Read-Host "Choose 1 or 2"
+            if ($answer -eq "2" -or $answer -eq "project") { $Scope = "project" } else { $Scope = "personal" }
+            $reason = "chosen"
+        } else {
+            $Scope = "personal"
+            $reason = "default"
+        }
+    }
+    if ($Scope -ne "personal" -and $Scope -ne "project") {
+        Fail "Scope must be personal or project, not '$Scope'.`nNothing was installed. Rerunning is safe." 2
+    }
+    # Node compares scope case-sensitively when writing metadata and cleaning locks.
+    $Scope = $Scope.ToLowerInvariant()
+    $Base = if ($Scope -eq "personal") { $UserHome } else { $cwd }
+    if ($reason -eq "default") {
+        Write-Output "Scope: personal ($Base). No saved choice and no terminal, so the default is personal. Run again with --scope personal or --scope project to change it."
+    } elseif ($reason -eq "remembered-personal") {
+        Write-Output "Scope: personal ($Base). Remembered for your user account. Run again with --scope personal or --scope project to change it."
+    } elseif ($reason -eq "remembered-project") {
+        Write-Output "Scope: project ($Base). Remembered for this folder only. Run again with --scope personal or --scope project to change it."
+    } else {
+        Write-Output "Scope: $Scope ($Base). Run again with --scope personal or --scope project to change it."
+    }
+
+    if ($RefOverride) {
+        $HubRef = $RefOverride
+        if ($OriginalRef -eq $RefOverride) {
+            Write-Output "Hub: $HubName @ $HubRef (--ref override; pin file says $HubSha)"
+        } else {
+            Write-Output "Hub: $HubName @ $HubRef (--ref $OriginalRef resolved; pin file says $HubSha)"
+        }
+    } else {
+        $HubRef = $HubSha
+        Write-Output "Hub: $HubName @ $HubRef"
+        if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
+            $head = & git -C $ScriptDir rev-parse HEAD 2>$null
+            if ($LASTEXITCODE -eq 0 -and $head -and $head.Trim() -ne $HubSha) {
+                [Console]::Error.WriteLine("Note: hub pin is $HubSha. This checkout is $($head.Trim()). The installer uses the pin. Pass --ref to install a different hub commit.")
+            }
+        }
+    }
+
+    foreach ($agent in $agents) {
+        $md = Join-Path $Tmp ($agent.Name + ".md")
+        $toml = Join-Path $Tmp ($agent.Name + ".toml")
+        Save-Download "$RawRoot/$Owner/$($agent.Name)/$($agent.Sha)/.claude/agents/$($agent.Name).md" $md "$($agent.Name) .claude/agents/$($agent.Name).md"
+        Save-Download "$RawRoot/$Owner/$($agent.Name)/$($agent.Sha)/.codex/agents/$($agent.Name).toml" $toml "$($agent.Name) .codex/agents/$($agent.Name).toml"
+    }
+    $workflow = Join-Path $Tmp "workflow.json"
+    $hubRaw = "$RawRoot/$Owner/$HubName/$HubRef"
+    Save-Download "$hubRaw/.engineering-workflow.json" $workflow ".engineering-workflow.json"
+
+    $skillUrl = "https://github.com/$Owner/$HubName/tree/$HubRef"
+    Write-Output "Skill: mydevfactory @ $HubRef"
+    # npx skills add installs or updates the pinned skill.
+    # The skills CLI treats a SHA in a GitHub URL as a branch. Check out the
+    # exact commit ourselves and install from that local tree instead.
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Fail "Git is required to install the pinned skill.`nNothing was installed. Rerunning is safe."
+    }
+    Enable-LfCheckout
+    $skillSource = Join-Path $Tmp "hub"
+    & git clone --quiet --no-checkout "https://github.com/$Owner/$HubName.git" $skillSource
+    if ($LASTEXITCODE -ne 0) { Fail "Could not clone the hub for the pinned skill.`nNo agent files were written. Rerunning is safe." }
+    & git -C $skillSource checkout --quiet --detach $HubRef
+    if ($LASTEXITCODE -ne 0) { Fail "Could not check out hub commit $HubRef.`nNo agent files were written. Rerunning is safe." }
+    $skillArgs = @("-y", "skills", "add", $skillSource, "--skill", "mydevfactory", "-a", "claude-code", "codex")
+    if ($Scope -eq "personal") { $skillArgs += "-g" }
+    $skillArgs += "-y"
+    $receipt = Join-Path $Base ".engineering-judgment/skill-pin.json"
+    if (Test-Path -LiteralPath $receipt) { Remove-Item -LiteralPath $receipt -Force }
+    & npx @skillArgs
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Skill install failed (npx exit code $LASTEXITCODE).`nSource: $skillUrl`nNo agent files were written. Rerunning is safe."
+    }
+
+    # The CLI's project lock points at a temporary checkout. Preserve other
+    # entries and record the resolved commit in an installer-owned receipt.
+    $metadataScript = @'
+const fs = require("fs");
+const path = require("path");
+const [base, source, repo, commit, scope] = process.argv.slice(2);
+// The CLI can report success even when one host could not be written.
+// Compare every source file at both host destinations before publishing a receipt.
+function verifyTree(sourceDir, destinationDir) {
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const from = path.join(sourceDir, entry.name);
+    const to = path.join(destinationDir, entry.name);
+    if (entry.isDirectory()) {
+      verifyTree(from, to);
+    } else if (entry.isFile() && !fs.readFileSync(from).equals(fs.readFileSync(to))) {
+      throw new Error(`Installed skill differs from pinned source: ${to}`);
+    }
+  }
+}
+try {
+  for (const host of [".agents", ".claude"]) {
+    verifyTree(path.join(source, "skills", "mydevfactory"), path.join(base, host, "skills", "mydevfactory"));
+  }
+} catch (error) {
+  console.error(`Skill verification failed: ${error.message}`);
+  process.exit(1);
+}
+const lockPath = path.join(base, "skills-lock.json");
+if (scope === "project" && fs.existsSync(lockPath)) {
+  const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+  const entry = lock.skills && lock.skills.mydevfactory;
+  if (entry && entry.sourceType === "local" && path.resolve(entry.source) === path.resolve(source)) {
+    delete lock.skills.mydevfactory;
+    fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+  }
+}
+// The CLI may replace the old remote entry with this temporary local source.
+if (scope === "personal") {
+  const globalLockPath = process.env.XDG_STATE_HOME
+    ? path.join(process.env.XDG_STATE_HOME, "skills", ".skill-lock.json")
+    : path.join(base, ".agents", ".skill-lock.json");
+  if (fs.existsSync(globalLockPath)) {
+    const lock = JSON.parse(fs.readFileSync(globalLockPath, "utf8"));
+    const entry = lock.skills && lock.skills.mydevfactory;
+    const isTemporarySource = entry && entry.sourceType === "local" && typeof entry.source === "string"
+      && path.resolve(entry.source) === path.resolve(source);
+    if (entry && (isTemporarySource || entry.source === repo || entry.source === `https://github.com/${repo}`)) {
+      delete lock.skills.mydevfactory;
+      fs.writeFileSync(globalLockPath, JSON.stringify(lock, null, 2) + "\n");
+    }
+  }
+}
+const receiptDir = path.join(base, ".engineering-judgment");
+fs.mkdirSync(receiptDir, { recursive: true });
+fs.writeFileSync(path.join(receiptDir, "skill-pin.json"),
+  JSON.stringify({ repository: repo, commit }, null, 2) + "\n");
+'@
+    $metadataScript | & node - $Base $skillSource "$Owner/$HubName" $HubRef $Scope
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Could not verify the installed skill or record its pin. Rerunning is safe."
+    }
+
+    foreach ($agent in $agents) {
+        Write-Output "Agent: $($agent.Name) @ $($agent.Sha)"
+        Install-AgentFile (Join-Path $Tmp ($agent.Name + ".md")) (Join-Path (Join-Path (Join-Path $Base ".claude") "agents") ($agent.Name + ".md"))
+        Install-AgentFile (Join-Path $Tmp ($agent.Name + ".toml")) (Join-Path (Join-Path (Join-Path $Base ".codex") "agents") ($agent.Name + ".toml"))
+    }
+
+    $workflowDest = Join-Path $Base ".engineering-workflow.json"
+    if ($Scope -eq "project") {
+        if (Test-Path -LiteralPath $workflowDest) { Write-Output "Config: .engineering-workflow.json kept as is" }
+        else {
+            Copy-Item -LiteralPath $workflow -Destination $workflowDest
+            Write-Output "Config: .engineering-workflow.json added"
+        }
+    }
+
+    $claudeDir = Join-Path $Base ".claude"
+    $codexDir = Join-Path $Base ".codex"
+    New-Item -ItemType Directory -Force -Path $claudeDir, $codexDir | Out-Null
+    $settingsPath = Join-Path $claudeDir "settings.json"
+    $settings = $null
+    if (Test-Path -LiteralPath $settingsPath) {
+        $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
+    }
+    if (-not $settings) { $settings = New-Object PSObject }
+    if (-not $settings.PSObject.Properties["env"]) { $settings | Add-Member -NotePropertyName env -NotePropertyValue (New-Object PSObject) }
+    if ($settings.env.PSObject.Properties["CLAUDE_AUTOCOMPACT_PCT_OVERRIDE"]) {
+        Write-Output "Claude Code: auto-compact already set ($($settings.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE)) in $settingsPath"
+    } else {
+        $settings.env | Add-Member -NotePropertyName CLAUDE_AUTOCOMPACT_PCT_OVERRIDE -NotePropertyValue "40"
+        [IO.File]::WriteAllText($settingsPath, ($settings | ConvertTo-Json -Depth 50) + "`n", $utf8)
+        Write-Output "Claude Code: auto-compact at 40% set in $settingsPath"
+    }
+    $tomlPath = Join-Path $codexDir "config.toml"
+    $toml = if (Test-Path -LiteralPath $tomlPath) { [IO.File]::ReadAllText($tomlPath) } else { "" }
+    if ($toml -match "(?m)^\s*model_auto_compact_token_limit\s*=") {
+        Write-Output "Codex: model_auto_compact_token_limit already set in $tomlPath"
+    } else {
+        $line = "model_auto_compact_token_limit = 160000  # 40% of a 400,000-token context window`n"
+        $m = [regex]::Match($toml, "(?m)^[ \t]*\[")
+        $pre = $(if ($m.Success) { $toml.Substring(0, $m.Index) } else { $toml }).TrimEnd()
+        $toml = $(if ($pre) { "$pre`n" } else { "" }) + $line + $(if ($m.Success) { "`n" + $toml.Substring($m.Index) } else { "" })
+        [IO.File]::WriteAllText($tomlPath, $toml, $utf8)
+        Write-Output "Codex: auto-compact at 160000 tokens set in $tomlPath"
+    }
+
+    if ($Scope -eq "project") {
+        $scopeDir = Join-Path $Base ".engineering-judgment"
+        New-Item -ItemType Directory -Force -Path $scopeDir | Out-Null
+        [IO.File]::WriteAllText((Join-Path $scopeDir "install-scope"), "project`n", $utf8)
+        $globalFile = Join-Path (Join-Path $UserHome ".engineering-judgment") "install-scope"
+        if (Test-Path -LiteralPath $globalFile) {
+            $g = ([IO.File]::ReadAllText($globalFile)).Trim()
+            if ($g -eq "project") { Remove-Item -LiteralPath $globalFile -Force }
+        }
+    } else {
+        $scopeDir = Join-Path $UserHome ".engineering-judgment"
+        New-Item -ItemType Directory -Force -Path $scopeDir | Out-Null
+        [IO.File]::WriteAllText((Join-Path $scopeDir "install-scope"), "personal`n", $utf8)
+        if ($ExplicitScope) {
+            $cwdMarker = Join-Path (Join-Path $cwd ".engineering-judgment") "install-scope"
+            if (Test-Path -LiteralPath $cwdMarker) { Remove-Item -LiteralPath $cwdMarker -Force }
+        }
+    }
+
+    if ($Scope -eq "personal") {
+        Write-Output "Config: in each project root, add .engineering-workflow.json:"
+        Write-Output "  irm $hubRaw/.engineering-workflow.json -OutFile .engineering-workflow.json"
+    }
+    Write-Output "Done. Start a new Claude Code or Codex session to use the updated skill and agents."
+} finally {
+    if ($Tmp) { Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue }
+}
+$global:LASTEXITCODE = 0
