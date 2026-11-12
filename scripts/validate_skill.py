@@ -5,7 +5,7 @@ import re
 import sys
 
 root = pathlib.Path(__file__).resolve().parents[1]
-skill_dir = root / "skills" / "engineering-judgment"
+skill_dir = root / "skills" / "mydevfactory"
 main = skill_dir / "SKILL.md"
 errors = []
 if not main.is_file():
@@ -20,8 +20,8 @@ else:
         for field in ("name", "description"):
             if not re.search(rf"(?m)^{field}:\s*\S+", frontmatter):
                 errors.append(f"Missing nonempty frontmatter field: {field}")
-        if not re.search(r"(?m)^name:\s*engineering-judgment\s*$", frontmatter):
-            errors.append("Skill name must be engineering-judgment")
+        if not re.search(r"(?m)^name:\s*mydevfactory\s*$", frontmatter):
+            errors.append("Skill name must be mydevfactory")
     refs = set(re.findall(r"(?:references|templates)/[a-z0-9-]+\.md", body))
     for ref in sorted(refs):
         if not (skill_dir / ref).is_file():
@@ -34,78 +34,78 @@ for p in ("README.md", "LICENSE", "CONTRIBUTING.md", ".engineering-workflow.json
 
 # Content checks: each file must contain every listed phrase.
 REQUIRED = {
-    "skills/engineering-judgment/templates/prd.md": [
+    "skills/mydevfactory/templates/prd.md": [
         "## Problem Statement", "## Solution", "## User Stories",
         "## Invariants", "## Implementation Decisions", "## Testing Decisions",
         "## Out of Scope", "## Open questions & answers", "## Slices",
         "## Developer sign-off", "## Further Notes",
     ],
-    "skills/engineering-judgment/templates/slice.md": [
+    "skills/mydevfactory/templates/slice.md": [
         "Status:", "Blocked by:", "Failures:", "## What to build", "## Contract",
         "## Backend part", "## Frontend part", "Owned files:", "Test commands:",
         "Part status:", "## Acceptance criteria", "## Questions & answers",
         "## Review notes", "## QA notes", "## Change requests", "## History",
         "## Developer sign-off",
     ],
-    "skills/engineering-judgment/references/kanban-protocol.md": [
+    "skills/mydevfactory/references/kanban-protocol.md": [
         "## Folder layout", "## Statuses", "## Transition table", "## Who writes what",
         "## Fresh agent prompts", "## Questions", "## Retry cap", "## Branches and commits",
         "## Parallel worktrees", "## After merge", "## Resume", "## Verdict enforcement",
         "Blocked: needs clarification", "git worktree list", "git diff --name-only",
         "uncommitted", "feature/<prd-name>", "not in the transition table",
     ],
-    "skills/engineering-judgment/references/analyst-playbook.md": [
+    "skills/mydevfactory/references/analyst-playbook.md": [
         "## Explore before asking", "CONTEXT.md", "CONTEXT-MAP.md", "docs/adr/",
         "## Questions", "recommended answer", "## Writing the PRD", "## Slicing",
         "vertical slice", "## Contract first", "exact files", "## Existing plans",
         "## Data checks", "read-only",
     ],
-    "skills/engineering-judgment/references/walkthrough.md": [
+    "skills/mydevfactory/references/walkthrough.md": [
         "## Step list", "execution-flow order", "## Step card", "What:", "Why:", "Tests:",
         "## Commands", "next", "back", "go N", "ask", "change", "approve all",
         "Change request by", "approved without viewing steps", "## Sign-off", "ACCEPT", "REJECT",
     ],
-    "skills/engineering-judgment/SKILL.md": [
+    "skills/mydevfactory/SKILL.md": [
         'version: "3.4.0"', "human-on-the-loop", "`Walkthrough`", "references/kanban-protocol.md",
         "references/analyst-playbook.md", "references/walkthrough.md", "templates/prd.md",
         "templates/slice.md", "fresh agent", "Developer sign-off", "only in Drill",
     ],
-    "skills/engineering-judgment/references/handoff-contract.md": [
+    "skills/mydevfactory/references/handoff-contract.md": [
         "slice file", "git diff --name-only", "recorded by orchestrator",
     ],
-    "skills/engineering-judgment/references/orchestration-matrix.md": ["Walkthrough", "prd/"],
-    "skills/engineering-judgment/references/training-drills.md": ["teach-back"],
+    "skills/mydevfactory/references/orchestration-matrix.md": ["Walkthrough", "prd/"],
+    "skills/mydevfactory/references/training-drills.md": ["teach-back"],
     "README.md": ["Walkthrough", "prd/", "human-on-the-loop", "Developer sign-off"],
     "CHANGELOG.md": ["## 3.2.0", "## 3.1.0", "## 3.0.0"],
 }
 # Final-review fixes: snapshots, evidence, blocked state, change-request state, base branch.
-REQUIRED["skills/engineering-judgment/templates/slice.md"] += ["Blocked from:", "Evidence:", "- Backend:", "- Frontend:"]
-REQUIRED["skills/engineering-judgment/templates/prd.md"] += ["| Blocks |", "Base:"]
-REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
+REQUIRED["skills/mydevfactory/templates/slice.md"] += ["Blocked from:", "Evidence:", "- Backend:", "- Frontend:"]
+REQUIRED["skills/mydevfactory/templates/prd.md"] += ["| Blocks |", "Base:"]
+REQUIRED["skills/mydevfactory/references/kanban-protocol.md"] += [
     "Blocked from:", "git status --porcelain", "never revert a path that was already",
     "one corrective re-run", "stash", "parts run one after another", "Evidence:",
 ]
-REQUIRED["skills/engineering-judgment/references/walkthrough.md"] += ["· open", "· done", "Base:"]
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["before dispatching the analyst", "Evidence:"]
-REQUIRED["skills/engineering-judgment/references/handoff-contract.md"] += ["git status --porcelain"]
+REQUIRED["skills/mydevfactory/references/walkthrough.md"] += ["· open", "· done", "Base:"]
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["before dispatching the analyst", "Evidence:"]
+REQUIRED["skills/mydevfactory/references/handoff-contract.md"] += ["git status --porcelain"]
 # Questions to the developer show their position and the total, e.g. "Question 4/10".
-REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["Question n/N"]
-REQUIRED["skills/engineering-judgment/references/analyst-playbook.md"] += ["Question n/N"]
-REQUIRED["skills/engineering-judgment/references/training-drills.md"] += ["Question n/N"]
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["Question n/N"]
-REQUIRED["README.md"] += ["## Updating the skill", "npx skills check", "npx skills update engineering-judgment"]
+REQUIRED["skills/mydevfactory/references/kanban-protocol.md"] += ["Question n/N"]
+REQUIRED["skills/mydevfactory/references/analyst-playbook.md"] += ["Question n/N"]
+REQUIRED["skills/mydevfactory/references/training-drills.md"] += ["Question n/N"]
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["Question n/N"]
+REQUIRED["README.md"] += ["## Updating the skill", "npx skills check", "npx skills update mydevfactory"]
 # The default analyst is requirements-analyst, linked for download.
 REQUIRED[".engineering-workflow.json"] = ['"name": "requirements-analyst"']
 REQUIRED["README.md"] += ["https://github.com/dimitriskl/requirements-analyst", '"name": "requirements-analyst"']
 # Chat text names its speaker, with one color marker per role.
 ROLE_COLORS = ["🟣 analyst", "🔵 backend", "🟢 frontend", "🟠 reviewer", "🟡 qa", "⚪ orchestrator"]
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ROLE_COLORS + ["<role> [<model>, <effort>] (<agent name>):"]
-REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += ["<role> [<model>, <effort>] (<agent name>) · Question n/N"]
+REQUIRED["skills/mydevfactory/SKILL.md"] += ROLE_COLORS + ["<role> [<model>, <effort>] (<agent name>):"]
+REQUIRED["skills/mydevfactory/references/kanban-protocol.md"] += ["<role> [<model>, <effort>] (<agent name>) · Question n/N"]
 REQUIRED["README.md"] += ROLE_COLORS + ["🟣 analyst [opus, high] (requirements-analyst):"]
 # Lean orchestrator: board-only reads, short agent reports.
 # Every agent auto-compacts at 40% context used while its job runs; a fresh agent starts only for a new job.
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["**Lean orchestrator.**", "40%", "Context checkpoints", "auto-compact"]
-REQUIRED["skills/engineering-judgment/references/kanban-protocol.md"] += [
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["**Lean orchestrator.**", "40%", "Context checkpoints", "auto-compact"]
+REQUIRED["skills/mydevfactory/references/kanban-protocol.md"] += [
     "## Context checkpoints", "40%", "at most 10 lines", "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
     "model_auto_compact_token_limit", "new job",
 ]
@@ -114,19 +114,19 @@ REQUIRED["README.md"] += [
     "model_auto_compact_token_limit",
 ]
 # The user sees in plain words that a subagent started, under a readable run name.
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["subagent `<run name>` started", "<role>_<slice or phase>"]
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["subagent `<run name>` started", "<role>_<slice or phase>"]
 REQUIRED["README.md"] += ["Interacted with `/root/backend_s001`", "subagent `backend_s001` started"]
 # Every Walkthrough step card lists the tests written for that step, and `tests` shows their code.
-REQUIRED["skills/engineering-judgment/references/walkthrough.md"] += ["Tests:", "new | changed | existing", "`tests`", "none written"]
+REQUIRED["skills/mydevfactory/references/walkthrough.md"] += ["Tests:", "new | changed | existing", "`tests`", "none written"]
 REQUIRED["README.md"] += ["VerifyCode_WrongCode_Returns401", "**`tests`**"]
 # Per-role model and effort, one value per host; the orchestrator detects the host.
-REQUIRED["skills/engineering-judgment/SKILL.md"] += [
+REQUIRED["skills/mydevfactory/SKILL.md"] += [
     "model.claude", "effort.codex", "host: Claude Code | Codex", "CLAUDECODE",
     "`reviewer: opus high`", "asks once", "▶ Now working: <role> [<model>, <effort>]",
 ]
 REQUIRED["README.md"] += ['"claude": "opus"', '"codex": "gpt-6.1-sol"', '"codex": "gpt-6.1-terra"', "`reviewer: opus high`"]
 # The mode was renamed from "Guide me" to "Walkthrough"; the old name may appear only as an alias.
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["formerly `Guide me`"]
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["formerly `Guide me`"]
 _old_name = re.compile(r"guide[ -]me", re.I)
 for scope in ("skills", "README.md", "examples"):
     target = root / scope
@@ -135,9 +135,9 @@ for scope in ("skills", "README.md", "examples"):
             if _old_name.search(line) and "formerly" not in line:
                 errors.append(f"{f.relative_to(root).as_posix()}:{n} uses the old name Guide me")
 # Brackets are mandatory, also for the orchestrator; global installs update with -g.
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["Never omit the brackets", "⚪ orchestrator [session]:"]
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["Never omit the brackets", "⚪ orchestrator [session]:"]
 REQUIRED["README.md"] += ["npx skills update -g"]
-_skill_text = (root / "skills/engineering-judgment/SKILL.md").read_text(encoding="utf-8")
+_skill_text = (root / "skills/mydevfactory/SKILL.md").read_text(encoding="utf-8")
 if "`⚪ orchestrator:` if you don't know" in _skill_text:
     errors.append("SKILL.md still allows an orchestrator label without brackets")
 for f in sorted((root / "skills").rglob("*.md")) + [root / "README.md"] + sorted((root / "examples").rglob("*.md")):
@@ -151,14 +151,14 @@ REQUIRED["install/install.sh"] = ["install/agents.txt", "skills add", "install-s
 REQUIRED["install/install.ps1"] = REQUIRED["install/install.sh"]
 REQUIRED["README.md"] += ["install/install.ps1 | iex", "install/install.sh | bash"]
 # Locations are clickable (path:line from the repo root) and the Walkthrough moves the editor to each step.
-REQUIRED["skills/engineering-judgment/SKILL.md"] += ["path/from/repo/root.ext:line"]
-REQUIRED["skills/engineering-judgment/references/walkthrough.md"] += [
+REQUIRED["skills/mydevfactory/SKILL.md"] += ["path/from/repo/root.ext:line"]
+REQUIRED["skills/mydevfactory/references/walkthrough.md"] += [
     "## Editor follows the walk", "code -r -g", "TERM_PROGRAM", "`open N`", "`editor off`",
 ]
 REQUIRED["README.md"] += ["code -r -g", "`open 2`"]
 # The example PRD folder must follow the templates.
-REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/engineering-judgment/templates/prd.md"]
-REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/engineering-judgment/templates/slice.md"]
+REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["skills/mydevfactory/templates/prd.md"]
+REQUIRED["examples/prd/invoice-approval/prd-tasks/001-approve-invoice.md"] = REQUIRED["skills/mydevfactory/templates/slice.md"]
 REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] = REQUIRED["examples/prd/invoice-approval/invoice-approval.md"] + ["Not signed yet"]
 import json
 try:

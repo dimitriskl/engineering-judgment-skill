@@ -1,5 +1,5 @@
-# Installs or updates the engineering-judgment skill and all of the author's agents (Windows PowerShell 5.1 or 7+).
-#   irm https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/main/install/install.ps1 | iex
+# Installs or updates the mydevfactory skill and all of the author's agents (Windows PowerShell 5.1 or 7+).
+#   irm https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.ps1 | iex
 # The first run asks where to install; later runs reuse that answer and update everything in place.
 # Change the answer with:  $env:EJ_SCOPE = "personal"   (or "project"), then run the command again.
 $ErrorActionPreference = "Stop"
@@ -7,7 +7,7 @@ $ProgressPreference = "SilentlyContinue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $Owner = "dimitriskl"
-$Raw = if ($env:EJ_RAW) { $env:EJ_RAW } else { "https://raw.githubusercontent.com/$Owner/engineering-judgment-skill/main" }
+$Raw = if ($env:EJ_RAW) { $env:EJ_RAW } else { "https://raw.githubusercontent.com/$Owner/mydevfactory/main" }
 $UserHome = $env:USERPROFILE
 $StateDir = Join-Path $UserHome ".engineering-judgment"
 $StateFile = Join-Path $StateDir "install-scope"
@@ -56,8 +56,8 @@ $Base = if ($Scope -eq "personal") { $UserHome } else { (Get-Location).Path }
 "Scope: $Scope ($Base). To change it: `$env:EJ_SCOPE = 'personal' or 'project', then run again."
 
 # --- 1. Skill (npx skills add installs or updates) -----------------------------------
-"Skill: engineering-judgment"
-$skillArgs = @("-y", "skills", "add", "$Owner/engineering-judgment-skill", "--skill", "engineering-judgment", "-a", "claude-code", "codex")
+"Skill: mydevfactory"
+$skillArgs = @("-y", "skills", "add", "$Owner/mydevfactory", "--skill", "mydevfactory", "-a", "claude-code", "codex")
 if ($Scope -eq "personal") { $skillArgs += "-g" }
 $skillArgs += "-y"
 & npx @skillArgs

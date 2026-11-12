@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Installs or updates the engineering-judgment skill and all of the author's agents (Linux and macOS).
-#   curl -fsSL https://raw.githubusercontent.com/dimitriskl/engineering-judgment-skill/main/install/install.sh | bash
+# Installs or updates the mydevfactory skill and all of the author's agents (Linux and macOS).
+#   curl -fsSL https://raw.githubusercontent.com/dimitriskl/mydevfactory/main/install/install.sh | bash
 # The first run asks where to install; later runs reuse that answer and update everything in place.
 # Change the answer with:  ... | bash -s -- --scope personal   (or --scope project)
 set -euo pipefail
 
 OWNER="dimitriskl"
-RAW="${EJ_RAW:-https://raw.githubusercontent.com/$OWNER/engineering-judgment-skill/main}"
+RAW="${EJ_RAW:-https://raw.githubusercontent.com/$OWNER/mydevfactory/main}"
 STATE_DIR="$HOME/.engineering-judgment"
 STATE_FILE="$STATE_DIR/install-scope"
 SCOPE="${EJ_SCOPE:-}"
@@ -38,8 +38,8 @@ if [ "$SCOPE" = "personal" ]; then BASE="$HOME"; GLOBAL="-g"; else BASE="$(pwd)"
 echo "Scope: $SCOPE ($BASE). Run again with --scope personal|project to change it."
 
 # --- 1. Skill (npx skills add installs or updates) -----------------------------------
-echo "Skill: engineering-judgment"
-npx -y skills add "$OWNER/engineering-judgment-skill" --skill engineering-judgment -a claude-code codex $GLOBAL -y </dev/null
+echo "Skill: mydevfactory"
+npx -y skills add "$OWNER/mydevfactory" --skill mydevfactory -a claude-code codex $GLOBAL -y </dev/null
 
 # --- 2. Agents: install, or update when the published file changed ------------------
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT

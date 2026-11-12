@@ -3,7 +3,7 @@
 The Walkthrough shows the developer **what was built, in the order it runs**, one step at a time, the way a person would step through code with a debugger. It is:
 
 - **the sign-off screen** at the end of every PRD, and per slice for L2 slices;
-- **a standalone mode**: `Use engineering-judgment in Walkthrough mode on <PRD | slice | branch | diff>`.
+- **a standalone mode**: `Use mydevfactory in Walkthrough mode on <PRD | slice | branch | diff>`.
 
 The Walkthrough never quizzes the developer. Check questions belong only to Drill mode.
 
