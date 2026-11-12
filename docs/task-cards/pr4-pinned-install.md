@@ -53,3 +53,8 @@ Commands: PowerShell suite exit 0, 124 passed; Git Bash suite exit 0, 125 passed
 Limits: no independent full-tree byte comparison, successful override receipt, every legacy lock format, real Node 18, or macOS run. No visual UI applicable.
 Merge risk: verification medium (these limits); request alignment low (targeted fix); impact medium (writes local skill installation and lock metadata); rollback medium (revert PR and reinstall prior version, retain backups); detection medium (explicit errors and receipt, no runtime monitoring).
 Status: READY FOR HUMAN REVIEW. Developer sign-off not yet recorded. No merge or release performed.
+
+## Hosted CI integration failure
+GitHub Actions run 43239653539 on be8e983 failed: installer-linux 124 passed/1 failed; installer-windows 123 passed/1 failed; validate passed. Both failures are legacy lock migration, unlike local Node24 runs. Hosted Node version: 22.23.4. Root cause is not yet established.
+Failures: 3/3. Status: BLOCKED: needs clarification.
+Blocked from: READY FOR HUMAN REVIEW. Decision needed: authorize another focused diagnostic/fix round under the skill retry-cap escalation. Do not merge while CI is failing.
