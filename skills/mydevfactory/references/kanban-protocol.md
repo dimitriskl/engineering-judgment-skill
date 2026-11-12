@@ -86,7 +86,7 @@ Agents stop only when something is unclear and changes what gets built. A subage
 ## Branches and commits
 
 - **Before dispatching the analyst** (and on every resume), make sure you are on **`feature/<prd-name>`**: create it from the current branch, or switch to it if it exists. Record `Base: <branch>@<sha>` in the PRD header.
-- If the working tree has **uncommitted** changes at that point, ask the developer to choose: **stash** them (`git stash push -u -m engineering-judgment`), **commit** them on their current branch first, or **stop**. Never start agents on top of the developer's uncommitted work.
+- If the working tree has **uncommitted** changes at that point, ask the developer to choose: **stash** them (`git stash push -u -m mydevfactory`), **commit** them on their current branch first, or **stop**. Never start agents on top of the developer's uncommitted work.
 - If the current branch is `main`, say so in the same question; the feature branch is still created from it.
 - After each verified step, the orchestrator commits on the current work branch with the message `<prd-or-slice-id> <column>: <result>` (the analysis step included), so git history mirrors the board. Agents don't commit or stage.
 - Serial slices are built directly on `feature/<prd-name>`; only parallel slices get their own worktree branch.

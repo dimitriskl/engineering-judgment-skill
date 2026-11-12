@@ -377,7 +377,7 @@ Copy-Item -Recurse .\mydevfactory\skills\mydevfactory C:\src\YourProject\.claude
 
 Use the corresponding destination for your agent. Restart its session, then invoke the skill explicitly. Your existing agent definitions and third-party skills are not replaced.
 
-> **Migrating from an earlier version:** back up and remove the old `engineering-judgment` or `engineering-judgment-coach` skill folder after installing `mydevfactory`, so the agent does not discover both versions. The installer retains `~/.engineering-judgment/install-scope` for compatibility.
+> **Migrating from an earlier version:** back up and remove the old `engineering-judgment` or `engineering-judgment-coach` skill folder from each installation location after installing `mydevfactory`, so the agent does not discover both versions. Existing installer scope settings are preserved in `~/.engineering-judgment/install-scope`; the folder retains its old name for compatibility.
 
 ## Updating the skill
 
